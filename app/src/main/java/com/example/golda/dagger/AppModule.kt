@@ -2,10 +2,12 @@ package com.example.golda.dagger
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.golda.R
 import com.google.gson.Gson
 import com.mongodb.stitch.android.core.Stitch
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoCollection
+import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
 import dagger.Module
 import dagger.Provides
 import org.bson.Document
@@ -42,18 +44,17 @@ class AppModule(private val context: Context) {
 
     @Singleton
     @Provides
-    internal fun provideMongoCollection(sharedPreference: SharedPreferences): RemoteMongoCollection<Document> {
-        Stitch.initializeDefaultAppClient("golda-dxwyb")
-        val stitchAppClient = Stitch.getDefaultAppClient()
-        val mongoClient =
-            stitchAppClient.getServiceClient(RemoteMongoClient.factory, "mongodb-atlas")
+    internal fun provideMongoDb(sharedPreference: SharedPreferences): RemoteMongoDatabase {
+//        Stitch.initializeDefaultAppClient("golda-dxwyb")
+//        val stitchAppClient = Stitch.getDefaultAppClient()
+        val stitchAppClient = Stitch.initializeDefaultAppClient(context.getString(R.string.my_app_id))
+        val mongoClient = stitchAppClient.getServiceClient(RemoteMongoClient.factory, "mongodb-atlas")
         if (!sharedPreference.contains("mongoId")) {
             val editor = sharedPreference.edit()
             editor.putString("mongoId", stitchAppClient.auth.user!!.id)
             editor.apply()
         }
-        return mongoClient.getDatabase("golda").getCollection("reviewItems")
-
+        return mongoClient.getDatabase("golda")
     }
 
 }
