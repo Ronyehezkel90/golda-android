@@ -2,13 +2,17 @@ package com.example.golda.dagger
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.golda.R
 import com.google.gson.Gson
 import com.mongodb.stitch.android.core.Stitch
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoCollection
+import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
+import com.mongodb.stitch.core.auth.providers.anonymous.AnonymousCredential
 import dagger.Module
 import dagger.Provides
 import org.bson.Document
+import timber.log.Timber
 import javax.inject.Singleton
 
 @Module
@@ -42,18 +46,23 @@ class AppModule(private val context: Context) {
 
     @Singleton
     @Provides
-    internal fun provideMongoCollection(sharedPreference: SharedPreferences): RemoteMongoCollection<Document> {
-        Stitch.initializeDefaultAppClient("golda-dxwyb")
-        val stitchAppClient = Stitch.getDefaultAppClient()
+    internal fun provideMongoDb(sharedPreference: SharedPreferences): RemoteMongoDatabase {
+        val stitchAppClient = Stitch.initializeDefaultAppClient("golda-dxwyb")
         val mongoClient =
             stitchAppClient.getServiceClient(RemoteMongoClient.factory, "mongodb-atlas")
         if (!sharedPreference.contains("mongoId")) {
-            val editor = sharedPreference.edit()
-            editor.putString("mongoId", stitchAppClient.auth.user!!.id)
-            editor.apply()
+            stitchAppClient.auth.loginWithCredential(AnonymousCredential())
+                .addOnSuccessListener {
+                    Timber.d("mongo success")
+                    val editor = sharedPreference.edit()
+                    editor.putString("mongoId", stitchAppClient.auth.user!!.id)
+                    editor.apply()
+                }
+                .addOnFailureListener {
+                    Timber.d("mongo fail")
+                }
         }
-        return mongoClient.getDatabase("golda").getCollection("reviewItems")
-
+        return mongoClient.getDatabase("golda")
     }
 
 }

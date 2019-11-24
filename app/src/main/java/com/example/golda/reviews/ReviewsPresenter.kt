@@ -17,7 +17,7 @@ class ReviewsPresenter
         displayItems()
     }
 
-    fun displayItems() {
+    private fun displayItems() {
         val reviewItemsList = mutableListOf<ReviewItem>()
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
