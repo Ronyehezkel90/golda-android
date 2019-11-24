@@ -3,12 +3,10 @@ package com.example.golda.reviews
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.golda.R
 import com.example.golda.dagger.App
 import com.hannesdorfmann.mosby.mvp.MvpActivity
-import kotlinx.android.synthetic.main.activity_reviews.*
 import kotlinx.android.synthetic.main.review_fragment.*
 
 class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsView {

@@ -3,12 +3,8 @@ package com.example.golda
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
 import com.example.golda.dagger.App
-import com.example.golda.reviews.ReviewItem
 import com.example.golda.reviews.ReviewsActivity
-import com.example.golda.reviews.ReviewsPresenter
-import com.example.golda.reviews.ReviewsView
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import com.hannesdorfmann.mosby.mvp.MvpView
 import io.reactivex.Completable
@@ -17,7 +13,7 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
+
 
 class MainActivity : MvpActivity<MvpView, MainPresenter>() {
     override fun createPresenter(): MainPresenter {

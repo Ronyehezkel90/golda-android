@@ -2,10 +2,8 @@ package com.example.golda
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.golda.reviews.ReviewItem
 import com.google.android.gms.tasks.Task
 import com.google.gson.Gson
-import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoCollection
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
 import org.bson.Document
 import javax.inject.Inject
