@@ -32,12 +32,11 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/role_text_view"
+            android:id="@+id/error_text_view"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginTop="200dp"
             android:gravity="center"
-            android:text="Please choose role"
             android:textColor="@color/white"
             android:textSize="30sp"
             app:layout_constraintBottom_toTopOf="@id/super_manager"
@@ -48,17 +47,19 @@
             android:id="@+id/super_manager"
             android:layout_width="100dp"
             android:layout_height="50dp"
-            android:onClick="superClicked"
+            android:onClick="reviewerClicked"
             android:text="super"
+            android:background="@color/grayRoleButton"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/role_text_view" />
+            app:layout_constraintTop_toBottomOf="@+id/error_text_view" />
 
         <Button
             android:id="@+id/manager"
             android:layout_width="100dp"
             android:layout_height="50dp"
-            android:onClick="managerClicked"
+            android:background="@color/grayRoleButton"
+            android:onClick="reviewerClicked"
             android:text="manager"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="@id/super_manager" />
@@ -69,6 +70,7 @@
             android:layout_height="50dp"
             android:onClick="reviewerClicked"
             android:text="reviewer"
+            android:background="@color/grayRoleButton"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/super_manager" />
 

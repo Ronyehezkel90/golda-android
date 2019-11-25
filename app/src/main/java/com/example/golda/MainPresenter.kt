@@ -1,5 +1,6 @@
 package com.example.golda
 
+import android.util.ArrayMap
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
 import com.hannesdorfmann.mosby.mvp.MvpView
@@ -11,11 +12,12 @@ class MainPresenter @Inject constructor(
     private val gson: Gson
 ) : MvpNullObjectBasePresenter<MvpView>() {
 
-    val usersList = ArrayList<UserItem>()
+    val usersMap = ArrayMap<String, UserItem>()
     override fun attachView(view: MvpView?) {
         mongoManager.getUsers().addOnSuccessListener {
             it.forEach {
-                usersList.add(gson.fromJson(it.toJson(), UserItem::class.java))
+                val user = gson.fromJson(it.toJson(), UserItem::class.java)
+                usersMap[user.name] = user
             }
         }
             .addOnFailureListener {

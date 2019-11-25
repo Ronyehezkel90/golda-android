@@ -1,5 +1,6 @@
 package com.example.golda.reviews
 
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,7 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.golda.R
 import kotlinx.android.synthetic.main.review_item.view.*
 
-class ReviewsAdapter : RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
+class ReviewsAdapter(val cameraOnClick: (Int) -> Unit) :
+    RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
 
     var reviewItemList: List<ReviewItem> = mutableListOf()
 
@@ -23,6 +25,17 @@ class ReviewsAdapter : RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = reviewItemList[position].title
         holder.subtitle.text = reviewItemList[position].subtitle
+        holder.cameraButton.setOnClickListener {
+            cameraOnClick(position)
+        }
+        if (reviewItemList[position].image != null) {
+            holder.cameraButton.setImageBitmap(reviewItemList[position].image)
+        }
+    }
+
+    fun setImageToItem(itemPosition: Int, bitmap: Bitmap) {
+        reviewItemList[itemPosition].image = bitmap
+        notifyDataSetChanged()
     }
 
     fun updateReviewItems(reviewItemList: List<ReviewItem>) {
@@ -33,5 +46,6 @@ class ReviewsAdapter : RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title = itemView.titleTextView
         val subtitle = itemView.subtitleTextView
+        val cameraButton = itemView.circle
     }
 }

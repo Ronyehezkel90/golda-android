@@ -7,5 +7,7 @@
     <color name="purpleReviewBg">#56280766</color>
     <color name="starColor">#FAB300</color>
     <color name="grayCircleColor">#969595</color>
+    <color name="grayRoleButton">#969595</color>
+    <color name="grayRoleButtonPressed">#646363</color>
     <color name="white">#FFFFFF</color>
 </resources>
