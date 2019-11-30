@@ -8,12 +8,10 @@ import com.example.golda.dagger.App
 import com.example.golda.reviews.ReviewsActivity
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import com.hannesdorfmann.mosby.mvp.MvpView
-import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.concurrent.TimeUnit
 
 
 class MainActivity : MvpActivity<MvpView, MainPresenter>() {
@@ -30,13 +28,14 @@ class MainActivity : MvpActivity<MvpView, MainPresenter>() {
 
     override fun onStart() {
         super.onStart()
-        disposable = Completable
-            .timer(2, TimeUnit.SECONDS)
+        disposable = presenter.mongoUsersBehaviorRelay
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe {
-                logo.visibility = View.GONE
-                main_layout.visibility = View.VISIBLE
+                if (it) {
+                    logo.visibility = View.GONE
+                    main_layout.visibility = View.VISIBLE
+                }
             }
     }
 

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import com.example.golda.R
 import com.google.gson.Gson
 import com.mongodb.stitch.android.core.Stitch
+import com.mongodb.stitch.android.core.StitchAppClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoCollection
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
@@ -46,23 +47,8 @@ class AppModule(private val context: Context) {
 
     @Singleton
     @Provides
-    internal fun provideMongoDb(sharedPreference: SharedPreferences): RemoteMongoDatabase {
-        val stitchAppClient = Stitch.initializeDefaultAppClient("golda-dxwyb")
-        val mongoClient =
-            stitchAppClient.getServiceClient(RemoteMongoClient.factory, "mongodb-atlas")
-        if (!sharedPreference.contains("mongoId")) {
-            stitchAppClient.auth.loginWithCredential(AnonymousCredential())
-                .addOnSuccessListener {
-                    Timber.d("mongo success")
-                    val editor = sharedPreference.edit()
-                    editor.putString("mongoId", stitchAppClient.auth.user!!.id)
-                    editor.apply()
-                }
-                .addOnFailureListener {
-                    Timber.d("mongo fail")
-                }
-        }
-        return mongoClient.getDatabase("golda")
+    internal fun provideMongoClient(sharedPreference: SharedPreferences): StitchAppClient {
+        return Stitch.initializeDefaultAppClient("golda-dxwyb")
     }
 
 }
