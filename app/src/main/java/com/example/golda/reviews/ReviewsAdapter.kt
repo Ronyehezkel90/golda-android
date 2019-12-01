@@ -11,11 +11,16 @@ import kotlinx.android.synthetic.main.review_item.view.*
 class ReviewsAdapter(val cameraOnClick: (Int) -> Unit) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
 
-    var reviewItemList: List<ReviewItem> = mutableListOf()
+    var reviewItemList: MutableList<ReviewItem> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.review_item, parent, false)
         return ViewHolder(view)
+    }
+
+    fun updateItems(topicReviews:MutableList<ReviewItem>){
+        this.reviewItemList = topicReviews
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
@@ -35,11 +40,6 @@ class ReviewsAdapter(val cameraOnClick: (Int) -> Unit) :
 
     fun setImageToItem(itemPosition: Int, bitmap: Bitmap) {
         reviewItemList[itemPosition].image = bitmap
-        notifyDataSetChanged()
-    }
-
-    fun updateReviewItems(reviewItemList: List<ReviewItem>) {
-        this.reviewItemList = reviewItemList
         notifyDataSetChanged()
     }
 

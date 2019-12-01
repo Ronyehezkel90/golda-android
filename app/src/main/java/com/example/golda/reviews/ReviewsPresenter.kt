@@ -12,18 +12,23 @@ class ReviewsPresenter
 
 ) : MvpNullObjectBasePresenter<ReviewsView>() {
 
+    val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
+
     override fun attachView(view: ReviewsView?) {
         super.attachView(view)
         displayItems()
     }
 
     private fun displayItems() {
-        val reviewItemsList = mutableListOf<ReviewItem>()
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
-                reviewItemsList.add(gson.fromJson(it.toJson(), ReviewItem::class.java))
+                val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
+                if (reviewItem.topic !in topicReviewsMap) {
+                    topicReviewsMap[reviewItem.topic] = ArrayList()
+                }
+                topicReviewsMap[reviewItem.topic]!!.add(reviewItem)
             }
-            view.showItems(reviewItemsList)
+            view.createAdapter()
         }
     }
 }

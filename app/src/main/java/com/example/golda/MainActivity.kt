@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import com.example.golda.dagger.App
-import com.example.golda.reviews.ReviewsActivity
+import com.example.golda.topics.TopicsActivity
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import com.hannesdorfmann.mosby.mvp.MvpView
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -58,7 +58,7 @@ class MainActivity : MvpActivity<MvpView, MainPresenter>() {
         } else if (chosenRole != presenter.usersMap[userTxt]?.role) {
             error_text_view.text = "$userTxt can't sign in as $chosenRole"
         } else {
-            val intent = Intent(this, ReviewsActivity::class.java)
+            val intent = Intent(this, TopicsActivity::class.java)
             startActivity(intent)
         }
     }

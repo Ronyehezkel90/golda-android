@@ -1,15 +1,12 @@
 package com.example.golda
 
-import android.content.Context
 import android.content.SharedPreferences
 import com.google.android.gms.tasks.Task
-import com.google.gson.Gson
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.mongodb.stitch.android.core.StitchAppClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
 import com.mongodb.stitch.core.auth.providers.anonymous.AnonymousCredential
-import io.reactivex.disposables.Disposable
 import org.bson.Document
 import timber.log.Timber
 import javax.inject.Inject
@@ -18,10 +15,8 @@ import javax.inject.Singleton
 
 @Singleton
 class MongoManager @Inject constructor(
-    private val context: Context,
     private val sharedPreferences: SharedPreferences,
-    private val stitchAppClient: StitchAppClient,
-    private val gson: Gson
+    private val stitchAppClient: StitchAppClient
 ) {
 
     val mongoDb: RemoteMongoDatabase
@@ -56,6 +51,12 @@ class MongoManager @Inject constructor(
         val result = mutableListOf<Document>()
         val reviewItemsCollection = mongoDb.getCollection("reviewItems")
         return reviewItemsCollection.find().into(result)
+    }
+
+    fun getTopics(): Task<MutableList<Document>> {
+        val topics = mutableListOf<Document>()
+        val topicsItemsCollection = mongoDb.getCollection("topicItems")
+        return topicsItemsCollection.find().into(topics)
     }
 
     fun getUsers(): Task<MutableList<Document>> {

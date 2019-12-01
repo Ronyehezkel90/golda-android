@@ -2,6 +2,7 @@ package com.example.golda.dagger
 
 import com.example.golda.MainComponent
 import com.example.golda.reviews.ReviewsComponent
+import com.example.golda.topics.TopicsComponent
 import com.google.gson.Gson
 import dagger.Component
 import javax.inject.Singleton
@@ -14,8 +15,7 @@ interface AppComponent {
 
     fun getMainComponent(): MainComponent
 
-    fun getMediator(): Mediator
+    fun getTopicsComponent(): TopicsComponent
 
-    fun getGson():Gson
-
+    fun getGson(): Gson
 }

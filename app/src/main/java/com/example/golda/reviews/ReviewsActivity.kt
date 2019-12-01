@@ -7,12 +7,14 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.golda.R
 import com.example.golda.dagger.App
+import com.example.golda.topics.TopicsActivity.Companion.TOPIC_ID_EXTRA
+import com.example.golda.topics.TopicsActivity.Companion.TOPIC_NAMES_EXTRA
 import com.hannesdorfmann.mosby.mvp.MvpActivity
+import kotlinx.android.synthetic.main.activity_reviews.*
 import kotlinx.android.synthetic.main.review_fragment.*
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
@@ -22,11 +24,12 @@ import timber.log.Timber
 @RuntimePermissions
 class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsView {
 
-    lateinit var reviewsAdapter: ReviewsAdapter
-    private val NUM_PAGES = 5
+    private var topicCount: Int = -1
     private val CAMERA_REQUEST_CODE: Int = 101
     private var itemPosition: Int = -1
-
+    private lateinit var fragmentCameraClicked: ReviewFragment
+    private lateinit var topicNames: ArrayList<String>
+    private var topicId: Int = -1
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -45,15 +48,21 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.review_fragment)
-        val pagerAdapter = ScreenSlidePagerAdapter(this)
-        view_pager.adapter = pagerAdapter
-        reviewsAdapter = ReviewsAdapter { position -> launchCameraWithPermissionCheck(position) }
+        topicId = intent.getIntExtra(TOPIC_ID_EXTRA, 0)
+        topicNames = intent.getStringArrayListExtra(TOPIC_NAMES_EXTRA)
+        topicCount = topicNames.size
+    }
+
+    override fun createAdapter() {
+        topic_view_pager.adapter = ScreenSlidePagerAdapter(this, topicCount)
+        topic_view_pager.currentItem = topicId
     }
 
     @NeedsPermission(Manifest.permission.CAMERA)
-    fun launchCamera(position: Int) {
+    fun launchCamera(fragment: ReviewFragment, position: Int) {
         val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         itemPosition = position
+        fragmentCameraClicked = fragment
         if (callCameraIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
         }
@@ -65,20 +74,19 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
             .show()
     }
 
-    override fun showItems(reviewItemList: List<ReviewItem>) {
-        reviewsAdapter.updateReviewItems(reviewItemList)
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     Timber.d("picture ok")
-                if(itemPosition!=-1) {
-                    reviewsAdapter.setImageToItem(itemPosition, data.extras!!.get("data") as Bitmap)
-                    itemPosition=-1
-                }
+                    if (itemPosition != -1) {
+                        (fragmentCameraClicked.reviewsRecyclerView.adapter as ReviewsAdapter).setImageToItem(
+                            itemPosition,
+                            data.extras!!.get("data") as Bitmap
+                        )
+                        itemPosition = -1
+                    }
                 }
             }
             else -> {
@@ -88,9 +96,14 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         }
     }
 
-    private inner class ScreenSlidePagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = NUM_PAGES
+    private inner class ScreenSlidePagerAdapter(
+        fa: FragmentActivity,
+        val topicCount: Int
+    ) : FragmentStateAdapter(fa) {
+        override fun getItemCount(): Int = topicCount
 
-        override fun createFragment(position: Int): Fragment = ReviewFragment()
+        override fun createFragment(position: Int): ReviewFragment {
+            return ReviewFragment(presenter.topicReviewsMap[position], topicNames[position])
+        }
     }
 }

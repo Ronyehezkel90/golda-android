@@ -29,16 +29,6 @@ class AppModule(private val context: Context) {
         return Gson()
     }
 
-//    @Provides
-//    internal fun provideRetrofit(): RetrofitService {
-//        val BASE_URL = "https://jsonplaceholder.typicode.com"
-//        return Retrofit.Builder()
-//            .baseUrl(BASE_URL)
-//            .addConverterFactory(MoshiConverterFactory.create())
-//            .build().create(RetrofitService::class.java)
-//    }
-
-
     @Singleton
     @Provides
     internal fun provideSharedPref(): SharedPreferences {
@@ -47,7 +37,7 @@ class AppModule(private val context: Context) {
 
     @Singleton
     @Provides
-    internal fun provideMongoClient(sharedPreference: SharedPreferences): StitchAppClient {
+    internal fun provideMongoClient(): StitchAppClient {
         return Stitch.initializeDefaultAppClient("golda-dxwyb")
     }
 

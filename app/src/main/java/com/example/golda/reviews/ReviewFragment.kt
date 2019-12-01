@@ -9,7 +9,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.golda.R
 import kotlinx.android.synthetic.main.activity_reviews.*
 
-class ReviewFragment : Fragment() {
+class ReviewFragment(
+    val topicReviews: MutableList<ReviewItem>?,
+    val topicName: String
+) : Fragment() {
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -18,7 +22,11 @@ class ReviewFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         reviewsRecyclerView.layoutManager = LinearLayoutManager(activity)
-        reviewsRecyclerView.adapter = (activity as ReviewsActivity).reviewsAdapter
+        reviewsRecyclerView.adapter = ReviewsAdapter { reviewPosition ->
+            (activity as ReviewsActivity).launchCameraWithPermissionCheck(this, reviewPosition)
+        }
+        (reviewsRecyclerView.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
+        sectionTitle.text = topicName
         super.onViewCreated(view, savedInstanceState)
     }
 }
