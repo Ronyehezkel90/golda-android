@@ -17,7 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".topics.TopicsActivity" />
+        <activity android:name=".administration.AdministrationActivity"></activity>
         <activity android:name=".reviews.ReviewsActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

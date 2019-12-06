@@ -6,30 +6,35 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.golda.R
+import com.example.golda.administration.AdministrationActivity
 import com.example.golda.dagger.App
-import com.example.golda.topics.TopicsActivity.Companion.TOPIC_ID_EXTRA
-import com.example.golda.topics.TopicsActivity.Companion.TOPIC_NAMES_EXTRA
+import com.example.golda.model.TopicItem
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import kotlinx.android.synthetic.main.activity_reviews.*
-import kotlinx.android.synthetic.main.review_fragment.*
+import kotlinx.android.synthetic.main.reviews_view_pager.*
+import org.bson.types.ObjectId
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
 
+
 @RuntimePermissions
 class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsView {
 
-    private var topicCount: Int = -1
     private val CAMERA_REQUEST_CODE: Int = 101
     private var itemPosition: Int = -1
+    lateinit var topicsFragment: TopicsFragment
     private lateinit var fragmentCameraClicked: ReviewFragment
-    private lateinit var topicNames: ArrayList<String>
     private var topicId: Int = -1
+    lateinit var topicItemsList: MutableList<TopicItem>
+    lateinit var branchId: ObjectId
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -47,15 +52,14 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.review_fragment)
-        topicId = intent.getIntExtra(TOPIC_ID_EXTRA, 0)
-        topicNames = intent.getStringArrayListExtra(TOPIC_NAMES_EXTRA)
-        topicCount = topicNames.size
+        setContentView(R.layout.reviews_view_pager)
+        branchId = intent.getSerializableExtra(AdministrationActivity.BRANCH_ID_EXTRA) as ObjectId
+
     }
 
-    override fun createAdapter() {
-        topic_view_pager.adapter = ScreenSlidePagerAdapter(this, topicCount)
-        topic_view_pager.currentItem = topicId
+    override fun createAdapter(topicItemsList: MutableList<TopicItem>) {
+        reviews_view_pager.adapter = ScreenSlidePagerAdapter(this, topicItemsList)
+        reviews_view_pager.currentItem = topicId
     }
 
     @NeedsPermission(Manifest.permission.CAMERA)
@@ -96,14 +100,44 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         }
     }
 
+    fun updateReviewRank(reviewId: ObjectId, rank: Int) {
+        presenter.updateReviewItemRank(reviewId, rank)
+    }
+
+    override fun goToTopic(topicId: Int) {
+        reviews_view_pager.currentItem = topicId
+    }
+
+    override fun showTopics(topicItemsList: MutableList<TopicItem>) {
+        this.topicItemsList = topicItemsList
+    }
+
+    override fun onBackPressed() {
+        if (reviews_view_pager.currentItem == 0) {
+            super.onBackPressed()
+        } else {
+            reviews_view_pager.currentItem = 0
+        }
+    }
+
     private inner class ScreenSlidePagerAdapter(
         fa: FragmentActivity,
-        val topicCount: Int
+        val topicItemsList: MutableList<TopicItem>
     ) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = topicCount
+        override fun getItemCount(): Int = topicItemsList.size
 
-        override fun createFragment(position: Int): ReviewFragment {
-            return ReviewFragment(presenter.topicReviewsMap[position], topicNames[position])
+        override fun createFragment(position: Int): Fragment {
+            return if (position == 0) {
+                topicsFragment = TopicsFragment()
+                topicsFragment.showTopics(topicItemsList)
+                return topicsFragment
+            } else {
+                ReviewFragment(presenter.topicReviewsMap[position], topicItemsList[position].topic)
+            }
         }
+    }
+
+    fun send_button_clicked(view: View) {
+        presenter.sendReview(branchId)
     }
 }

@@ -1,10 +1,11 @@
-package com.example.golda.topics
+package com.example.golda.reviews
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.golda.R
+import com.example.golda.model.TopicItem
 import kotlinx.android.synthetic.main.topic_item.view.*
 
 class TopicsAdapter(val topicOnClick: (Int) -> Unit) : RecyclerView.Adapter<TopicsAdapter.ViewHolder>() {

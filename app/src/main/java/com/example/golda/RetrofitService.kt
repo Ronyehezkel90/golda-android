@@ -1,6 +1,6 @@
 package com.example.golda
 
-import com.example.golda.reviews.ReviewItem
+import com.example.golda.model.ReviewItem
 import retrofit2.Response
 import retrofit2.http.GET
 

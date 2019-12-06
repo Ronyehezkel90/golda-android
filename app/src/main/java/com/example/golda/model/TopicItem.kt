@@ -1,3 +1,3 @@
-package com.example.golda.topics
+package com.example.golda.model
 
 data class TopicItem(val id: Int, val topic: String)

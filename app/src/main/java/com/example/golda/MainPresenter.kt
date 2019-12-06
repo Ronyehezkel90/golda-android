@@ -1,6 +1,8 @@
 package com.example.golda
 
+import android.content.SharedPreferences
 import android.util.ArrayMap
+import com.example.golda.model.UserItem
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
 import com.hannesdorfmann.mosby.mvp.MvpView
@@ -10,7 +12,8 @@ import javax.inject.Inject
 
 class MainPresenter @Inject constructor(
     private val mongoManager: MongoManager,
-    private val gson: Gson
+    private val gson: Gson,
+    private val sharedPreferences: SharedPreferences
 ) : MvpNullObjectBasePresenter<MvpView>() {
 
     val usersMap = ArrayMap<String, UserItem>()
@@ -31,7 +34,10 @@ class MainPresenter @Inject constructor(
                     }
             }
         }
-
         super.attachView(view)
+    }
+
+    fun saveUserToSharedPref(userId: String?) {
+        sharedPreferences.edit().putString("userId", userId).apply()
     }
 }
