@@ -12,7 +12,10 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.golda.R
-import com.example.golda.administration.AdministrationActivity
+import com.example.golda.administration.AdministrationActivity.Companion.ADMINISTRATION_ROLE_EXTRA
+import com.example.golda.administration.AdministrationActivity.Companion.BRANCH_ID_EXTRA
+import com.example.golda.administration.AdministrationActivity.Companion.CHOSEN_DATE_EXTRA
+import com.example.golda.administration.AdministrationPresenter.ROLE
 import com.example.golda.dagger.App
 import com.example.golda.model.TopicItem
 import com.hannesdorfmann.mosby.mvp.MvpActivity
@@ -35,6 +38,9 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     private var topicId: Int = -1
     lateinit var topicItemsList: MutableList<TopicItem>
     lateinit var branchId: ObjectId
+    lateinit var date: String
+    lateinit var role: ROLE
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -53,8 +59,15 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reviews_view_pager)
-        branchId = intent.getSerializableExtra(AdministrationActivity.BRANCH_ID_EXTRA) as ObjectId
-
+        role = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE
+        branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
+        if (role == ROLE.MANAGER) {
+            date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
+            presenter.displayResultReviews(branchId, date)
+        }
+        else{
+            presenter.displayReviews()
+        }
     }
 
     override fun createAdapter(topicItemsList: MutableList<TopicItem>) {

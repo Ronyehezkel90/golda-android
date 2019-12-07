@@ -36,6 +36,7 @@ class ReviewsAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = reviewItemList[position].title
         holder.subtitle.text = reviewItemList[position].subtitle
+        holder.RatingBar.rating = reviewItemList[position].rank.toFloat()
         holder.RatingBar.setOnRatingBarChangeListener { ratingBar, rank, b ->
             ratingBarOnChange(reviewItemList[position]._id, rank.toInt())
         }

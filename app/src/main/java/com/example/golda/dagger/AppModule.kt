@@ -41,7 +41,7 @@ class AppModule(private val context: Context) {
             JsonDeserializer { je, type, jdc -> ObjectId(je.asJsonObject.get("\$oid").asString) }
         return GsonBuilder()
             .registerTypeAdapter(ObjectId::class.java, des)
-            .registerTypeAdapter(Date::class.java, JsonDateDeserializer())
+//            .registerTypeAdapter(Date::class.java, JsonDateDeserializer())
             .create()
     }
 

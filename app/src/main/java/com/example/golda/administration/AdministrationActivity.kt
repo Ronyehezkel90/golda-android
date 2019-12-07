@@ -21,10 +21,10 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
         val ADMINISTRATION_NAME_EXTRA = "ADMINISTRATION_NAME_EXTRA"
         val ADMINISTRATION_ROLE_EXTRA = "ADMINISTRATION_ROLE_EXTRA"
         val BRANCH_ID_EXTRA = "BRANCH_ID_EXTRA"
+        val CHOSEN_DATE_EXTRA = "CHOSEN_DATE_EXTRA"
     }
 
     lateinit var role: ROLE
-    lateinit var branchesList: MutableList<BranchItem>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +61,6 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
     }
 
     override fun setBranches(branchesList: MutableList<BranchItem>) {
-        this.branchesList = branchesList
         val branchesNames = branchesList.map { it.name }.toMutableList()
         val adapter = ArrayAdapter(this, R.layout.spinner_item, branchesNames)
         adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line)
@@ -96,9 +95,22 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
         }
     }
 
+    private fun getChosenBranchId(): ObjectId {
+        return presenter.getChosenBranchObjectIdByPosition(branches_spinner.selectedItemPosition)
+    }
+
     fun setReviewClicked(view: View) {
         val intent = Intent(this, ReviewsActivity::class.java)
-        intent.putExtra(BRANCH_ID_EXTRA, branchesList[branches_spinner.selectedItemPosition]._id)
+        intent.putExtra(BRANCH_ID_EXTRA, getChosenBranchId())
+        intent.putExtra(ADMINISTRATION_ROLE_EXTRA, role)
+        startActivity(intent)
+    }
+
+    fun watchReviewClick(view: View) {
+        val intent = Intent(this, ReviewsActivity::class.java)
+        intent.putExtra(BRANCH_ID_EXTRA, getChosenBranchId())
+        intent.putExtra(CHOSEN_DATE_EXTRA, date_spinner.selectedItem as String)
+        intent.putExtra(ADMINISTRATION_ROLE_EXTRA, role)
         startActivity(intent)
     }
 

@@ -6,7 +6,7 @@ import java.util.*
 data class ReviewRelationItem(
     val _id: ObjectId,
     val branchId: ObjectId,
-    val date: Date,
+    val date: String,
     val reviewerId: ObjectId,
     var reviewResultId: ObjectId
 )

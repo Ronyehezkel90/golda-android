@@ -8,12 +8,10 @@ import com.mongodb.stitch.android.core.StitchAppClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
 import com.mongodb.stitch.core.auth.providers.anonymous.AnonymousCredential
-import org.bson.BsonDocument
-import org.bson.BsonObjectId
-import org.bson.BsonValue
-import org.bson.Document
+import org.bson.*
 import org.bson.types.ObjectId
 import timber.log.Timber
+import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -59,6 +57,24 @@ class MongoManager @Inject constructor(
         return reviewItemsCollection.find().into(result)
     }
 
+    fun getReviewsRelationsByBranchAndDate(
+        branchId: ObjectId,
+        date: String
+    ): Task<MutableList<Document>> {
+        val result = mutableListOf<Document>()
+        val reviewItemsCollection = mongoDb.getCollection("reviewMediator")
+        val query = BsonDocument("branchId", BsonObjectId(branchId))
+        query["date"] = BsonString(date)
+        return reviewItemsCollection.find(query).into(result)
+    }
+
+    fun getReviewsResultsById(reviewResultsId: ObjectId): Task<MutableList<Document>> {
+        val reviewResultItemsCollection = mongoDb.getCollection("reviewsResults")
+        val result = mutableListOf<Document>()
+        val query = BsonDocument("_id", BsonObjectId(reviewResultsId))
+        return reviewResultItemsCollection.find(query).into(result)
+    }
+
     fun getTopics(): Task<MutableList<Document>> {
         val topics = mutableListOf<Document>()
         val topicsItemsCollection = mongoDb.getCollection("topicItems")
@@ -76,13 +92,12 @@ class MongoManager @Inject constructor(
         val result = mutableListOf<Document>()
         val reviewItemsCollection = mongoDb.getCollection("branches")
         return reviewItemsCollection.find().into(result)
-
     }
 
     fun getReviewsRelationsByBranch(branchId: ObjectId): Task<MutableList<Document>> {
+        val reviewItemsCollection = mongoDb.getCollection("reviewMediator")
         val query = BsonDocument("branchId", BsonObjectId(branchId))
         val result = mutableListOf<Document>()
-        val reviewItemsCollection = mongoDb.getCollection("reviewMediator")
         return reviewItemsCollection.find(query).into(result)
     }
 
@@ -129,7 +144,7 @@ class MongoManager @Inject constructor(
         document.append("reviewResultId", reviewResultId)
         document.append("branchId", branchId)
         document.append("reviewerId", reviewerId)
-        document.append("date", Date())
+        document.append("date", SimpleDateFormat("dd/MM/yyyy").format(Date()))
         reviewMediatorCollection.insertOne(document)
 
         return

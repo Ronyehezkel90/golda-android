@@ -6,6 +6,7 @@ import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
+import org.bson.Document
 import org.bson.types.ObjectId
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,12 +21,48 @@ class ReviewsPresenter
 
     val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
 
-    override fun attachView(view: ReviewsView?) {
-        super.attachView(view)
-        displayReviews()
+    fun displayResultReviews(branchId: ObjectId, date: String) {
+        mongoManager.getReviews().addOnSuccessListener {
+            it.forEach {
+                val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
+                if (reviewItem.topic !in topicReviewsMap) {
+                    topicReviewsMap[reviewItem.topic] = ArrayList()
+                }
+                topicReviewsMap[reviewItem.topic]!!.add(reviewItem)
+            }
+            rankReviews(branchId, date)
+        }
     }
 
-    private fun displayReviews() {
+    private fun rankReviews(branchId: ObjectId, date: String) {
+        mongoManager.getReviewsRelationsByBranchAndDate(branchId, date).addOnSuccessListener {
+            mongoManager.getReviewsResultsById(it[0]["reviewResultId"] as ObjectId)
+                .addOnSuccessListener {
+                    (it[0]["topics"] as ArrayList<*>).forEach {
+                        //                        for (review in topicReviewsMap[(it as Document).get("topic_id")] as ArrayList<ReviewItem>){
+                        for (reviewDoc in (it as Document)["reviews"] as ArrayList<Document>) {
+                            val review =
+                                findReviewInTopicReviewsMapById(reviewDoc["review_id"] as ObjectId)
+                            review!!.rank = reviewDoc["rank"] as Int
+                        }
+                    }
+                    displayTopics()
+                }
+        }
+    }
+
+    private fun findReviewInTopicReviewsMapById(reviewObjectId: ObjectId): ReviewItem? {
+        for (reviewsByTopic in topicReviewsMap.values) {
+            for (review in reviewsByTopic) {
+                if (review._id == reviewObjectId) {
+                    return review
+                }
+            }
+        }
+        return null
+    }
+
+    fun displayReviews() {
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
