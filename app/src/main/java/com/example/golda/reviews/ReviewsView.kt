@@ -10,4 +10,6 @@ interface ReviewsView : MvpView {
     fun goToTopic(topicId: Int)
 
     fun showTopics(topicItemsList: MutableList<TopicItem>)
+
+    fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int)
 }

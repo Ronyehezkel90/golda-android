@@ -11,6 +11,7 @@ import com.example.golda.model.ReviewItem
 import kotlinx.android.synthetic.main.activity_reviews.*
 
 class ReviewFragment(
+    val idx: Int,
     val topicReviews: MutableList<ReviewItem>?,
     val topicName: String
 ) : Fragment() {
@@ -25,10 +26,15 @@ class ReviewFragment(
         reviewsRecyclerView.layoutManager = LinearLayoutManager(activity)
         reviewsRecyclerView.adapter = ReviewsAdapter(
             { reviewPosition -> takePhoto(reviewPosition) },
-            { reviewId, rank -> (activity as ReviewsActivity).updateReviewRank(reviewId, rank) })
+            { reviewId, rank -> (activity as ReviewsActivity).updateReviewRank(reviewId, rank) },
+            {reviewPosition -> addComment(reviewPosition)})
         (reviewsRecyclerView.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
         sectionTitle.text = topicName
         super.onViewCreated(view, savedInstanceState)
+    }
+
+    private fun addComment(reviewPosition: Int) {
+        (activity as ReviewsActivity).addComment(this, reviewPosition)
     }
 
     private fun takePhoto(reviewPosition: Int) {

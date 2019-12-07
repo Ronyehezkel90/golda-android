@@ -7,7 +7,9 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -74,6 +76,28 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         reviews_view_pager.currentItem = topicId
     }
 
+    private fun getFragmentAdapter(reviewFragment: ReviewFragment): ReviewsAdapter {
+        return (reviewFragment.reviewsRecyclerView.adapter as ReviewsAdapter)
+    }
+
+    override fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int) {
+        val alert = AlertDialog.Builder(this)
+        val editText = EditText(this)
+        editText.setText(
+            presenter.topicReviewsMap[reviewFragment.idx]?.get(reviewPosition)?.comment)
+        alert.setTitle("Add comment")
+        alert.setView(editText)
+        alert.setPositiveButton("Add") { dialog, whichButton ->
+            getFragmentAdapter(reviewFragment).setCommentToItem(
+                reviewPosition,
+                editText.text.toString()
+            )
+        }
+        alert.setNegativeButton("Cancel") { dialog, whichButton -> }
+        alert.show()
+
+    }
+
     @NeedsPermission(Manifest.permission.CAMERA)
     fun launchCamera(fragment: ReviewFragment, position: Int) {
         val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -97,7 +121,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     Timber.d("picture ok")
                     if (itemPosition != -1) {
-                        (fragmentCameraClicked.reviewsRecyclerView.adapter as ReviewsAdapter).setImageToItem(
+                        getFragmentAdapter(fragmentCameraClicked).setImageToItem(
                             itemPosition,
                             data.extras!!.get("data") as Bitmap
                         )
@@ -145,6 +169,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 return topicsFragment
             } else {
                 ReviewFragment(
+                    position-1,
                     presenter.topicReviewsMap[position - 1],
                     topicItemsList[position - 1].topic
                 )
@@ -155,4 +180,5 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     fun sendButtonClicked(view: View) {
         presenter.sendReview(branchId)
     }
+
 }
