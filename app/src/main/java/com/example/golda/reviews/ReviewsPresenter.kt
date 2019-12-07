@@ -45,6 +45,7 @@ class ReviewsPresenter
                                 findReviewInTopicReviewsMapById(reviewDoc["review_id"] as ObjectId)
                             review?.rank = reviewDoc["rank"] as Int
                             review?.comment = if (reviewDoc["comment"] == null) "" else reviewDoc["comment"] as String
+                            review?.imageUrl = if (reviewDoc["image_url"] == null) "" else reviewDoc["image_url"] as String
                         }
                     }
                     displayTopics()

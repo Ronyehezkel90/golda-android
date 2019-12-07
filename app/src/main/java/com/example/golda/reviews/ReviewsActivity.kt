@@ -41,7 +41,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     lateinit var topicItemsList: MutableList<TopicItem>
     lateinit var branchId: ObjectId
     lateinit var date: String
-    lateinit var role: ROLE
+    var isManager: Boolean = false
 
 
     override fun onRequestPermissionsResult(
@@ -61,9 +61,9 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reviews_view_pager)
-        role = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE
+        isManager = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE == ROLE.MANAGER
         branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
-        if (role == ROLE.MANAGER) {
+        if (isManager) {
             date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
             presenter.displayResultReviews(branchId, date)
         } else {
@@ -77,25 +77,30 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     }
 
     private fun getFragmentAdapter(reviewFragment: ReviewFragment): ReviewsAdapter {
-        return (reviewFragment.reviewsRecyclerView.adapter as ReviewsAdapter)
+        return (reviewFragment.reviews_recycler_view.adapter as ReviewsAdapter)
     }
 
     override fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int) {
-        val alert = AlertDialog.Builder(this)
         val editText = EditText(this)
         editText.setText(
-            presenter.topicReviewsMap[reviewFragment.idx]?.get(reviewPosition)?.comment)
-        alert.setTitle("Add comment")
+            presenter.topicReviewsMap[reviewFragment.idx]?.get(reviewPosition)?.comment
+        )
+        editText.isEnabled = !isManager
+        val alert = AlertDialog.Builder(this)
+        alert.setTitle(if (isManager) "Comment" else "Add comment")
         alert.setView(editText)
-        alert.setPositiveButton("Add") { dialog, whichButton ->
-            getFragmentAdapter(reviewFragment).setCommentToItem(
-                reviewPosition,
-                editText.text.toString()
-            )
+        if (isManager) {
+            alert.setPositiveButton("Ok") { dialog, whichButton -> }
+        } else {
+            alert.setPositiveButton("Add") { dialog, whichButton ->
+                getFragmentAdapter(reviewFragment).setCommentToItem(
+                    reviewPosition,
+                    editText.text.toString()
+                )
+            }
+            alert.setNegativeButton("Cancel") { dialog, whichButton -> }
         }
-        alert.setNegativeButton("Cancel") { dialog, whichButton -> }
         alert.show()
-
     }
 
     @NeedsPermission(Manifest.permission.CAMERA)
@@ -169,7 +174,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 return topicsFragment
             } else {
                 ReviewFragment(
-                    position-1,
+                    position - 1,
                     presenter.topicReviewsMap[position - 1],
                     topicItemsList[position - 1].topic
                 )
@@ -179,6 +184,10 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
     fun sendButtonClicked(view: View) {
         presenter.sendReview(branchId)
+    }
+
+    fun outsideGalleryViewClicked(view: View) {
+        gallery_view_frame_layout.visibility = View.GONE
     }
 
 }

@@ -10,4 +10,5 @@
     <color name="grayRoleButton">#969595</color>
     <color name="grayRoleButtonPressed">#646363</color>
     <color name="white">#FFFFFF</color>
+    <color name="black" >#37000000</color>
 </resources>

@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.golda.R
+import com.example.golda.administration.AdministrationPresenter
 import com.example.golda.model.TopicItem
 import kotlinx.android.synthetic.main.fragment_topics.*
 
@@ -23,6 +24,9 @@ class TopicsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         topicsRecyclerView.layoutManager = LinearLayoutManager(activity)
         topicsRecyclerView.adapter = this.topicsAdapter
+        if ((activity as ReviewsActivity).isManager) {
+            send_button.visibility = View.GONE
+        }
         super.onViewCreated(view, savedInstanceState)
     }
 
