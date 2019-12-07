@@ -64,8 +64,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         if (role == ROLE.MANAGER) {
             date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
             presenter.displayResultReviews(branchId, date)
-        }
-        else{
+        } else {
             presenter.displayReviews()
         }
     }
@@ -118,7 +117,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     }
 
     override fun goToTopic(topicId: Int) {
-        reviews_view_pager.currentItem = topicId
+        reviews_view_pager.currentItem = topicId + 1
     }
 
     override fun showTopics(topicItemsList: MutableList<TopicItem>) {
@@ -137,7 +136,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         fa: FragmentActivity,
         val topicItemsList: MutableList<TopicItem>
     ) : FragmentStateAdapter(fa) {
-        override fun getItemCount(): Int = topicItemsList.size
+        override fun getItemCount(): Int = topicItemsList.size + 1
 
         override fun createFragment(position: Int): Fragment {
             return if (position == 0) {
@@ -145,12 +144,15 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 topicsFragment.showTopics(topicItemsList)
                 return topicsFragment
             } else {
-                ReviewFragment(presenter.topicReviewsMap[position], topicItemsList[position].topic)
+                ReviewFragment(
+                    presenter.topicReviewsMap[position - 1],
+                    topicItemsList[position - 1].topic
+                )
             }
         }
     }
 
-    fun send_button_clicked(view: View) {
+    fun sendButtonClicked(view: View) {
         presenter.sendReview(branchId)
     }
 }

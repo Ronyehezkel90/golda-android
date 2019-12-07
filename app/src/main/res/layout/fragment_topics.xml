@@ -16,7 +16,7 @@
 
     <Button
         android:id="@+id/send_button"
-        android:onClick="send_button_clicked"
+        android:onClick="sendButtonClicked"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="שלח"
