@@ -35,6 +35,7 @@ class AdministrationPresenter
     }
 
     fun getDatesByBranch(position: Int) {
+        view.setLoaderVisibility(true)
         val branchId = branchesList[position]._id
         val datesList = mutableListOf<String>()
         mongoManager.getReviewsRelationsByBranch(branchId).addOnSuccessListener {
@@ -43,6 +44,7 @@ class AdministrationPresenter
                 datesList.add(reviewRelation.date)
             }
             view.setDates(datesList)
+            view.setLoaderVisibility(false)
         }.addOnFailureListener {
             Timber.e("Topics failure")
         }

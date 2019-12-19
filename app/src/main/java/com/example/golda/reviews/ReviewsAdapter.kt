@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RatingBar
 import androidx.recyclerview.widget.RecyclerView
-import coil.api.load
 import com.example.golda.R
 import com.example.golda.model.ReviewItem
 import kotlinx.android.synthetic.main.review_item.view.*
@@ -18,7 +17,8 @@ class ReviewsAdapter(
     val cameraOnClick: (Int) -> Unit,
     val ratingBarOnChange: (ObjectId, Int) -> Unit,
     val commentOnClick: (Int) -> Unit,
-    val openImageGallery: (String) -> Unit
+    val openImageGallery: (Bitmap) -> Unit,
+    val downloadImageByKey: (String) -> Unit
 
 ) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
@@ -34,6 +34,14 @@ class ReviewsAdapter(
     fun updateItems(topicReviews: MutableList<ReviewItem>) {
         this.reviewItemList = topicReviews
         notifyDataSetChanged()
+    }
+
+    fun downloadImages() {
+        for (item in this.reviewItemList) {
+            if (item.imageUrl != "") {
+                downloadImageByKey(item.imageUrl)
+            }
+        }
     }
 
     override fun getItemCount(): Int {
@@ -53,13 +61,10 @@ class ReviewsAdapter(
         holder.ratingBar.setOnRatingBarChangeListener { ratingBar, rank, b ->
             ratingBarOnChange(reviewItemList[position]._id, rank.toInt())
         }
-        if (reviewItemList[position].imageUrl != "") {
-            holder.cameraButton.load(reviewItemList[position].imageUrl)
-        }
         holder.cameraButton.setOnClickListener {
             if (isManager) {
-                if (reviewItemList[position].imageUrl != "") {
-                    openImageGallery(reviewItemList[position].imageUrl)
+                if (reviewItemList[position].imageBitmap != null) {
+                    openImageGallery(reviewItemList[position].imageBitmap!!)
                 }
             } else {
                 cameraOnClick(position)
@@ -68,19 +73,34 @@ class ReviewsAdapter(
         holder.commentButton.setOnClickListener {
             commentOnClick(position)
         }
-        //todo: after we implement upload images to s3 we should remove imageBitmap and rely only on imageUrl
         if (reviewItemList[position].imageBitmap != null) {
             holder.cameraButton.setImageBitmap(reviewItemList[position].imageBitmap)
+        } else if (isManager && reviewItemList[position].imageUrl != "") {
+            holder.cameraButton.setImageResource(R.drawable.ic_down)
+//            downloadImageByKey(reviewItemList[position].imageUrl)
         }
+//        else if (isManager && reviewItemList[position].imageUrl != "") {
+//            holder.cameraButton.setImageResource(R.drawable.ic_down)
+//            downloadImageByKey(reviewItemList[position].imageUrl)
+//        }
     }
 
-    fun setImageToItem(itemPosition: Int, bitmap: Bitmap) {
-        reviewItemList[itemPosition].imageBitmap = bitmap
-        notifyDataSetChanged()
+    fun setImageKeyToItem(itemPosition: Int, imgKey: String) {
+        reviewItemList[itemPosition].imageUrl = imgKey
+        downloadImageByKey(reviewItemList[itemPosition].imageUrl)
     }
 
     fun setCommentToItem(itemPosition: Int, comment: String) {
         reviewItemList[itemPosition].comment = comment
+        notifyDataSetChanged()
+    }
+
+    fun showImage(itemPosition: Int, bitmap: Bitmap) {
+        reviewItemList[itemPosition].imageBitmap = bitmap
+        notifyDataSetChanged()
+    }
+
+    fun notifyDataChange() {
         notifyDataSetChanged()
     }
 

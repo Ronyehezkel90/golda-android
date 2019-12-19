@@ -1,7 +1,13 @@
 package com.example.golda.reviews
 
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
+import android.os.Environment
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.example.golda.MongoManager
+import com.example.golda.Repository
+import com.example.golda.S3Manager
 import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.google.gson.Gson
@@ -9,16 +15,21 @@ import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
 import org.bson.Document
 import org.bson.types.ObjectId
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 class ReviewsPresenter
 @Inject constructor(
+    private val s3Manager: S3Manager,
     private val mongoManager: MongoManager,
     private val gson: Gson,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
+    private val repository: Repository
 
 ) : MvpNullObjectBasePresenter<ReviewsView>() {
 
+    lateinit var branchId: ObjectId
+    lateinit var date: String
     val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
 
     fun displayResultReviews(branchId: ObjectId, date: String) {
@@ -44,8 +55,13 @@ class ReviewsPresenter
                             val review =
                                 findReviewInTopicReviewsMapById(reviewDoc["review_id"] as ObjectId)
                             review?.rank = reviewDoc["rank"] as Int
-                            review?.comment = if (reviewDoc["comment"] == null) "" else reviewDoc["comment"] as String
-                            review?.imageUrl = if (reviewDoc["image_url"] == null) "" else reviewDoc["image_url"] as String
+                            review?.comment =
+                                if (reviewDoc["comment"] == null) "" else reviewDoc["comment"] as String
+                            review?.imageUrl =
+                                if (reviewDoc["image_url"] == null) "" else reviewDoc["image_url"] as String
+                            if (review?.imageUrl != "") {
+                                downloadImage(review!!.imageUrl)
+                            }
                         }
                     }
                     displayTopics()
@@ -101,7 +117,101 @@ class ReviewsPresenter
     }
 
     fun sendReview(branchId: ObjectId) {
-        val userId = ObjectId(sharedPreferences.getString("userId", "no user id"))
-        mongoManager.sendReview(topicReviewsMap, branchId, userId)
+        val reviewerId = ObjectId(sharedPreferences.getString("userId", "no user id"))
+        mongoManager.sendReview(topicReviewsMap)?.addOnSuccessListener {
+            Timber.d("review inserted successfully")
+            mongoManager.insertMediatorDoc(it.insertedId, branchId, reviewerId)
+                ?.addOnSuccessListener {
+                    view.setLoaderVisibility(false)
+                    view.closeActivity()
+                }
+                ?.addOnFailureListener {
+                    view.setLoaderVisibility(false)
+                }
+        }?.addOnFailureListener { Timber.d("review insert failed") }
+    }
+
+    private fun getImgKey(revId: ObjectId?): String {
+        return "$branchId-${date.replace('/', '-')}-$revId.png"
+    }
+
+    private fun getTopicPositionByKey(imageKey: String): Int {
+        val revId = imageKey.substring(imageKey.findLastAnyOf(listOf("-"))?.first as Int + 1)
+        for ((j, reviewsByTopic) in topicReviewsMap.values.withIndex()) {
+            for ((i, review) in reviewsByTopic.withIndex()) {
+                if (review._id.toString() + ".png" == revId) {
+                    return j
+                }
+            }
+        }
+        return -1
+    }
+
+    private fun getItemPositionByKey(imageKey: String): Int {
+        val revId = imageKey.substring(imageKey.findLastAnyOf(listOf("-"))?.first as Int + 1)
+        for (reviewsByTopic in topicReviewsMap.values) {
+            for ((i, review) in reviewsByTopic.withIndex()) {
+                if (review._id.toString() + ".png" == revId) {
+                    return i
+                }
+            }
+        }
+        return -1
+    }
+
+    fun uploadImage(file: File, itemPosition: Int, reviewFragment: ReviewFragment) {
+        val fragmentAdapter = view.getFragmentAdapter(reviewFragment)
+        val revId = topicReviewsMap[reviewFragment.idx]?.get(itemPosition)?._id
+        val imgKey = getImgKey(revId)
+        s3Manager.uploadImage(file, imgKey)?.setTransferListener(
+            object : TransferListener {
+                override fun onStateChanged(id: Int, state: TransferState) {
+                    Timber.d("onStateChanged")
+                    if (state == TransferState.COMPLETED) {
+                        fragmentAdapter.setImageKeyToItem(itemPosition, imgKey)
+                    }
+                }
+
+                override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
+                    Timber.d("onProgressChanged")
+                }
+
+                override fun onError(id: Int, ex: Exception) {
+                    Timber.d("Error")
+                }
+            })
+    }
+
+    fun setImage(imageKey: String) {
+        val imageFile = File(Environment.getExternalStorageDirectory(), imageKey).path
+        val imageBitmap = BitmapFactory.decodeFile(imageFile)
+        val topicIdx = getTopicPositionByKey(imageKey)
+        topicReviewsMap[topicIdx]?.get(getItemPositionByKey(imageKey))
+            ?.imageBitmap = imageBitmap
+        view.updateItems(topicIdx)
+//        view.setImageByKey(getItemPositionByKey(imageKey), reviewFragment, imageBitmap)
+    }
+
+    fun downloadImage(imageKey: String) {
+        s3Manager.downloadPic(imageKey)?.setTransferListener(object : TransferListener {
+            override fun onStateChanged(id: Int, state: TransferState) {
+                if (TransferState.COMPLETED == state) {
+                    setImage(imageKey)
+                }
+            }
+
+            override fun onProgressChanged(id: Int, current: Long, total: Long) {
+                try {
+                    val done = (((current.toDouble() / total) * 100.0).toInt()) //as Int
+                    Timber.d("DOWNLOAD - - ID: $id, percent done = $done")
+                } catch (e: Exception) {
+                    Timber.e(e)
+                }
+            }
+
+            override fun onError(id: Int, ex: Exception) {
+                Timber.d("DOWNLOAD ERROR - - ID: $id - - EX: ${ex.message.toString()}")
+            }
+        })
     }
 }
