@@ -1,6 +1,6 @@
 package com.example.golda.reviews
 
-import android.graphics.Bitmap
+import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.hannesdorfmann.mosby.mvp.MvpView
 
@@ -20,13 +20,7 @@ interface ReviewsView : MvpView {
 
     fun closeActivity()
 
-    fun downloadImageByKey(imageKey: String, reviewFragment: ReviewFragment)
-
-    fun setImageByKey(
-        itemPosition: Int,
-        reviewFragment: ReviewFragment,
-        bitmap: Bitmap
-    )
+    fun downloadImageByKey(imageKey: ReviewItem, reviewFragment: ReviewFragment)
 
     fun updateItems(topicIdx: Int)
 }

@@ -3,7 +3,6 @@ package com.example.golda.reviews
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
@@ -21,6 +20,7 @@ import com.example.golda.administration.AdministrationActivity.Companion.BRANCH_
 import com.example.golda.administration.AdministrationActivity.Companion.CHOSEN_DATE_EXTRA
 import com.example.golda.administration.AdministrationPresenter.ROLE
 import com.example.golda.dagger.App
+import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import kotlinx.android.synthetic.main.activity_reviews.*
@@ -38,14 +38,13 @@ import java.io.File
 class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsView {
 
     private val CAMERA_REQUEST_CODE: Int = 101
-    private var itemPosition: Int = -1
     lateinit var topicsFragment: TopicsFragment
-    private lateinit var fragmentClicked: ReviewFragment
     private var topicId: Int = -1
     lateinit var topicItemsList: MutableList<TopicItem>
     var isManager: Boolean = false
     var tempFilePath: String = "/sdcard/temp_image.png"
     val fragments = mutableListOf<ReviewFragment>()
+    lateinit var currentUploadingImageReviewItem: ReviewItem
 
 
     override fun onRequestPermissionsResult(
@@ -112,16 +111,13 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE
     )
-    fun launchCamera(fragment: ReviewFragment, position: Int) {
+    fun launchCamera(reviewItem: ReviewItem) {
         val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
         val builder = StrictMode.VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
         val uriSavedImage = Uri.fromFile(File(tempFilePath))
         callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage)
-
-        itemPosition = position
-        fragmentClicked = fragment
+        currentUploadingImageReviewItem = reviewItem
         if (callCameraIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
         }
@@ -137,9 +133,8 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && itemPosition != -1) {
-                    presenter.uploadImage(File(tempFilePath), itemPosition, fragmentClicked)
-                    itemPosition = -1
+                if (resultCode == Activity.RESULT_OK) {
+                    presenter.uploadImage(File(tempFilePath), currentUploadingImageReviewItem)
                 }
             }
             else -> {
@@ -168,21 +163,16 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         }
     }
 
-    override fun downloadImageByKey(imageKey: String, reviewFragment: ReviewFragment) {
-        return presenter.downloadImage(imageKey)
-    }
-
-    override fun setImageByKey(
-        itemPosition: Int,
-        reviewFragment: ReviewFragment,
-        bitmap: Bitmap
+    override fun downloadImageByKey(
+        reviewItemWithImage: ReviewItem,
+        reviewFragment: ReviewFragment
     ) {
-        //todo: tey to not using fragment, only set the bitmap and let the adapter load it.
-        getFragmentAdapter(reviewFragment).showImage(itemPosition, bitmap)
+        return presenter.downloadImage(reviewItemWithImage)
     }
 
     override fun updateItems(topicIdx: Int) {
-        getFragmentAdapter(fragments[topicIdx]).notifyDataChange()
+//        (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
+        getFragmentAdapter(fragments[topicIdx]).updateItems(presenter.topicReviewsMap[topicIdx]!!)
     }
 
     fun sendButtonClicked(view: View) {

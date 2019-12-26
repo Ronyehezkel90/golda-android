@@ -1,9 +1,11 @@
 package com.example.golda.reviews
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.os.Environment
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferNetworkLossHandler
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.example.golda.MongoManager
 import com.example.golda.Repository
@@ -12,6 +14,7 @@ import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
+import com.jakewharton.rxrelay2.BehaviorRelay
 import org.bson.Document
 import org.bson.types.ObjectId
 import timber.log.Timber
@@ -36,6 +39,7 @@ class ReviewsPresenter
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
+                reviewItem.imageLoadedBehaviourRelay = BehaviorRelay.createDefault(false)
                 if (reviewItem.topic !in topicReviewsMap) {
                     topicReviewsMap[reviewItem.topic] = ArrayList()
                 }
@@ -59,9 +63,6 @@ class ReviewsPresenter
                                 if (reviewDoc["comment"] == null) "" else reviewDoc["comment"] as String
                             review?.imageUrl =
                                 if (reviewDoc["image_url"] == null) "" else reviewDoc["image_url"] as String
-                            if (review?.imageUrl != "") {
-                                downloadImage(review!!.imageUrl)
-                            }
                         }
                     }
                     displayTopics()
@@ -84,6 +85,7 @@ class ReviewsPresenter
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
+                reviewItem.imageLoadedBehaviourRelay = BehaviorRelay.createDefault(false)
                 if (reviewItem.topic !in topicReviewsMap) {
                     topicReviewsMap[reviewItem.topic] = ArrayList()
                 }
@@ -159,16 +161,23 @@ class ReviewsPresenter
         return -1
     }
 
-    fun uploadImage(file: File, itemPosition: Int, reviewFragment: ReviewFragment) {
-        val fragmentAdapter = view.getFragmentAdapter(reviewFragment)
-        val revId = topicReviewsMap[reviewFragment.idx]?.get(itemPosition)?._id
+    fun uploadImage(file: File, reviewItemWithImage: ReviewItem) {
+        val revId = reviewItemWithImage._id
         val imgKey = getImgKey(revId)
+//        val transferNetworkLossHandler:TransferNetworkLossHandler = TransferNetworkLossHandler.getInstance(view as Context)
         s3Manager.uploadImage(file, imgKey)?.setTransferListener(
             object : TransferListener {
                 override fun onStateChanged(id: Int, state: TransferState) {
                     Timber.d("onStateChanged")
                     if (state == TransferState.COMPLETED) {
-                        fragmentAdapter.setImageKeyToItem(itemPosition, imgKey)
+                        reviewItemWithImage.imageUrl = imgKey
+                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.png").path
+                        val imageBitmap = BitmapFactory.decodeFile(imageFile)
+                        reviewItemWithImage.imageBitmap = imageBitmap
+                        reviewItemWithImage.imageLoadedBehaviourRelay.accept(true)
+                    }
+                    else if( state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK){
+                        Timber.d("upload failed")
                     }
                 }
 
@@ -182,36 +191,30 @@ class ReviewsPresenter
             })
     }
 
-    fun setImage(imageKey: String) {
-        val imageFile = File(Environment.getExternalStorageDirectory(), imageKey).path
-        val imageBitmap = BitmapFactory.decodeFile(imageFile)
-        val topicIdx = getTopicPositionByKey(imageKey)
-        topicReviewsMap[topicIdx]?.get(getItemPositionByKey(imageKey))
-            ?.imageBitmap = imageBitmap
-        view.updateItems(topicIdx)
-//        view.setImageByKey(getItemPositionByKey(imageKey), reviewFragment, imageBitmap)
-    }
-
-    fun downloadImage(imageKey: String) {
-        s3Manager.downloadPic(imageKey)?.setTransferListener(object : TransferListener {
-            override fun onStateChanged(id: Int, state: TransferState) {
-                if (TransferState.COMPLETED == state) {
-                    setImage(imageKey)
+    fun downloadImage(reviewItemWithImage: ReviewItem) {
+        s3Manager.downloadPic(reviewItemWithImage.imageUrl)
+            ?.setTransferListener(object : TransferListener {
+                override fun onStateChanged(id: Int, state: TransferState) {
+                    if (TransferState.COMPLETED == state) {
+                        val imageFile = File(Environment.getExternalStorageDirectory(), reviewItemWithImage.imageUrl).path
+                        val imageBitmap = BitmapFactory.decodeFile(imageFile)
+                        reviewItemWithImage.imageBitmap = imageBitmap
+                        reviewItemWithImage.imageLoadedBehaviourRelay.accept(true)
+                    }
                 }
-            }
 
-            override fun onProgressChanged(id: Int, current: Long, total: Long) {
-                try {
-                    val done = (((current.toDouble() / total) * 100.0).toInt()) //as Int
-                    Timber.d("DOWNLOAD - - ID: $id, percent done = $done")
-                } catch (e: Exception) {
-                    Timber.e(e)
+                override fun onProgressChanged(id: Int, current: Long, total: Long) {
+                    try {
+                        val done = (((current.toDouble() / total) * 100.0).toInt()) //as Int
+                        Timber.d("DOWNLOAD - - ID: $id, percent done = $done")
+                    } catch (e: Exception) {
+                        Timber.e(e)
+                    }
                 }
-            }
 
-            override fun onError(id: Int, ex: Exception) {
-                Timber.d("DOWNLOAD ERROR - - ID: $id - - EX: ${ex.message.toString()}")
-            }
-        })
+                override fun onError(id: Int, ex: Exception) {
+                    Timber.d("DOWNLOAD ERROR - - ID: $id - - EX: ${ex.message.toString()}")
+                }
+            })
     }
 }

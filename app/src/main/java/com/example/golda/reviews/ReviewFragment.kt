@@ -32,7 +32,8 @@ class ReviewFragment(
             { reviewId, rank -> (activity as ReviewsActivity).updateReviewRank(reviewId, rank) },
             { reviewPosition -> addComment(reviewPosition) },
             { imageUrl -> openImageGallery(imageUrl) },
-            { imageKey -> downloadImageByKey(imageKey) }
+            { imageKey -> downloadImageByKey(imageKey) },
+            {reviewItem -> subscribeToImageLoaded(reviewItem)}
 
         )
         (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
@@ -42,8 +43,16 @@ class ReviewFragment(
         }
     }
 
-    private fun downloadImageByKey(imageKey: String) {
-        (activity as ReviewsActivity).downloadImageByKey(imageKey, this)
+    private fun subscribeToImageLoaded(reviewItem: ReviewItem) {
+        val reviewDisposable = reviewItem.imageLoadedBehaviourRelay.subscribe {
+            if(it){
+                (reviews_recycler_view.adapter as ReviewsAdapter).showImage()
+            }
+        }
+    }
+
+    private fun downloadImageByKey(reviewItemWithImage: ReviewItem) {
+        (activity as ReviewsActivity).downloadImageByKey(reviewItemWithImage, this)
     }
 
     private fun openImageGallery(bitmap: Bitmap) {
@@ -55,8 +64,9 @@ class ReviewFragment(
         (activity as ReviewsActivity).addComment(this, reviewPosition)
     }
 
-    private fun takePhoto(reviewPosition: Int) {
-        (activity as ReviewsActivity).launchCameraWithPermissionCheck(this, reviewPosition)
+    private fun takePhoto(reviewItem: ReviewItem) {
+        subscribeToImageLoaded(reviewItem)
+        (activity as ReviewsActivity).launchCameraWithPermissionCheck(reviewItem)
     }
 
 

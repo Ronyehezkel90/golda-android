@@ -14,11 +14,12 @@ import org.bson.types.ObjectId
 
 class ReviewsAdapter(
     private val isManager: Boolean,
-    val cameraOnClick: (Int) -> Unit,
+    val cameraOnClick: (ReviewItem) -> Unit,
     val ratingBarOnChange: (ObjectId, Int) -> Unit,
     val commentOnClick: (Int) -> Unit,
     val openImageGallery: (Bitmap) -> Unit,
-    val downloadImageByKey: (String) -> Unit
+    val downloadImageByKey: (ReviewItem) -> Unit,
+    val subscribeToImageLoaded: (ReviewItem) -> Unit
 
 ) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
@@ -34,14 +35,6 @@ class ReviewsAdapter(
     fun updateItems(topicReviews: MutableList<ReviewItem>) {
         this.reviewItemList = topicReviews
         notifyDataSetChanged()
-    }
-
-    fun downloadImages() {
-        for (item in this.reviewItemList) {
-            if (item.imageUrl != "") {
-                downloadImageByKey(item.imageUrl)
-            }
-        }
     }
 
     override fun getItemCount(): Int {
@@ -67,7 +60,9 @@ class ReviewsAdapter(
                     openImageGallery(reviewItemList[position].imageBitmap!!)
                 }
             } else {
-                cameraOnClick(position)
+                cameraOnClick(reviewItemList[position])
+                holder.cameraButton.setImageResource(R.drawable.ic_down)
+
             }
         }
         holder.commentButton.setOnClickListener {
@@ -75,9 +70,14 @@ class ReviewsAdapter(
         }
         if (reviewItemList[position].imageBitmap != null) {
             holder.cameraButton.setImageBitmap(reviewItemList[position].imageBitmap)
-        } else if (isManager && reviewItemList[position].imageUrl != "") {
-            holder.cameraButton.setImageResource(R.drawable.ic_down)
-//            downloadImageByKey(reviewItemList[position].imageUrl)
+        }
+        else if (isManager && reviewItemList[position].imageUrl != "") {
+            if (!holder.startDownload) {
+                downloadImageByKey(reviewItemList[position])
+                subscribeToImageLoaded(reviewItemList[position])
+                holder.cameraButton.setImageResource(R.drawable.ic_down)
+                holder.startDownload = true
+            }
         }
 //        else if (isManager && reviewItemList[position].imageUrl != "") {
 //            holder.cameraButton.setImageResource(R.drawable.ic_down)
@@ -85,22 +85,17 @@ class ReviewsAdapter(
 //        }
     }
 
-    fun setImageKeyToItem(itemPosition: Int, imgKey: String) {
-        reviewItemList[itemPosition].imageUrl = imgKey
-        downloadImageByKey(reviewItemList[itemPosition].imageUrl)
-    }
+//    fun setImageKeyToItem(itemPosition: Int, imgKey: String) {
+//        reviewItemList[itemPosition].imageUrl = imgKey
+//        downloadImageByKey(reviewItemList[itemPosition].imageUrl)
+//    }
 
     fun setCommentToItem(itemPosition: Int, comment: String) {
         reviewItemList[itemPosition].comment = comment
         notifyDataSetChanged()
     }
 
-    fun showImage(itemPosition: Int, bitmap: Bitmap) {
-        reviewItemList[itemPosition].imageBitmap = bitmap
-        notifyDataSetChanged()
-    }
-
-    fun notifyDataChange() {
+    fun showImage() {
         notifyDataSetChanged()
     }
 
@@ -110,5 +105,6 @@ class ReviewsAdapter(
         val cameraButton = itemView.circle
         val ratingBar: RatingBar = itemView.rating_bar
         val commentButton: ImageView = itemView.comment_button
+        var startDownload: Boolean = false
     }
 }
