@@ -12,6 +12,5 @@ data class ReviewItem(
     var imageBitmap: Bitmap? = null,
     var imageUrl: String,
     var rank: Int = -1,
-    var comment: String,
-    var imageLoadedBehaviourRelay:BehaviorRelay<Boolean>
+    var comment: String
 )

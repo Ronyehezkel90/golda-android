@@ -37,22 +37,13 @@ class ReviewFragment(
             { reviewId, rank -> (activity as ReviewsActivity).updateReviewRank(reviewId, rank) },
             { reviewPosition -> addComment(reviewPosition) },
             { imageUrl -> openImageGallery(imageUrl) },
-            { imageKey -> downloadImageByKey(imageKey) },
-            { reviewItem -> subscribeToImageLoaded(reviewItem) }
+            { imageKey -> downloadImageByKey(imageKey) }
 
         )
         (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
         section_title.text = topicName
         gallery_view_frame_layout.setOnClickListener {
             gallery_view_frame_layout.visibility = View.GONE
-        }
-    }
-
-    private fun subscribeToImageLoaded(reviewItem: ReviewItem) {
-        val reviewDisposable = reviewItem.imageLoadedBehaviourRelay.subscribe {
-            if (it) {
-                (reviews_recycler_view.adapter as ReviewsAdapter).showImage()
-            }
         }
     }
 
@@ -79,9 +70,6 @@ class ReviewFragment(
     }
 
     private fun takePhoto(reviewItem: ReviewItem) {
-        subscribeToImageLoaded(reviewItem)
         (activity as ReviewsActivity).launchCameraWithPermissionCheck(reviewItem)
     }
-
-
 }

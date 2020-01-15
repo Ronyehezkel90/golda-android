@@ -18,8 +18,7 @@ class ReviewsAdapter(
     val ratingBarOnChange: (ObjectId, Int) -> Unit,
     val commentOnClick: (Int) -> Unit,
     val openImageGallery: (Bitmap) -> Unit,
-    val downloadImageByKey: (ReviewItem) -> Unit,
-    val subscribeToImageLoaded: (ReviewItem) -> Unit
+    val downloadImageByKey: (ReviewItem) -> Unit
 
 ) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
@@ -74,7 +73,6 @@ class ReviewsAdapter(
         else if (isManager && reviewItemList[position].imageUrl != "") {
             if (!holder.startDownload) {
                 downloadImageByKey(reviewItemList[position])
-                subscribeToImageLoaded(reviewItemList[position])
                 holder.cameraButton.setImageResource(R.drawable.ic_down)
                 holder.startDownload = true
             }

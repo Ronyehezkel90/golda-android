@@ -33,13 +33,15 @@ class ReviewsPresenter
 
     lateinit var branchId: ObjectId
     lateinit var date: String
+    private var reviewsNumber = 0
     val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
 
     fun displayResultReviews(branchId: ObjectId, date: String) {
         mongoManager.getReviews().addOnSuccessListener {
+            reviewsNumber = it.size
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
-                reviewItem.imageLoadedBehaviourRelay = BehaviorRelay.createDefault(false)
+                downloadImage(reviewItem)
                 if (reviewItem.topic !in topicReviewsMap) {
                     topicReviewsMap[reviewItem.topic] = ArrayList()
                 }
@@ -85,7 +87,6 @@ class ReviewsPresenter
         mongoManager.getReviews().addOnSuccessListener {
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
-                reviewItem.imageLoadedBehaviourRelay = BehaviorRelay.createDefault(false)
                 if (reviewItem.topic !in topicReviewsMap) {
                     topicReviewsMap[reviewItem.topic] = ArrayList()
                 }
@@ -174,7 +175,6 @@ class ReviewsPresenter
                         val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
-                        reviewItemWithImage.imageLoadedBehaviourRelay.accept(true)
                     }
                     else if( state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK){
                         Timber.d("upload failed")
@@ -199,7 +199,14 @@ class ReviewsPresenter
                         val imageFile = File(Environment.getExternalStorageDirectory(), reviewItemWithImage.imageUrl).path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
-                        reviewItemWithImage.imageLoadedBehaviourRelay.accept(true)
+                        reduceReviewsAndTryToContinue()
+                    }
+                }
+
+                private fun reduceReviewsAndTryToContinue() {
+                    reviewsNumber--
+                    if (reviewsNumber == 0) {
+                        view.setLoaderVisibility(showLoader = false)
                     }
                 }
 
@@ -213,7 +220,8 @@ class ReviewsPresenter
                 }
 
                 override fun onError(id: Int, ex: Exception) {
-                    Timber.d("DOWNLOAD ERROR - - ID: $id - - EX: ${ex.message.toString()}")
+                    Timber.e("DOWNLOAD ERROR - - ID: $id - - EX: ${ex.message.toString()}")
+                    reduceReviewsAndTryToContinue()
                 }
             })
     }

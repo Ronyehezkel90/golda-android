@@ -69,6 +69,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reviews_view_pager)
+        //todo
         isManager = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE == ROLE.MANAGER
         presenter.branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
         presenter.date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
@@ -77,6 +78,11 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         } else {
             presenter.displayReviews()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setLoaderVisibility(showLoader = true)
     }
 
     override fun createAdapter(topicItemsList: MutableList<TopicItem>) {
