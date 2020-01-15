@@ -2,14 +2,19 @@ package com.example.golda
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Environment
 import android.os.Environment.getExternalStorageDirectory
 import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver
+import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.regions.Region
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.S3ClientOptions
+import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -48,8 +53,28 @@ class S3Manager @Inject constructor(val context: Context) {
         return imgAsFile
     }
 
-    fun uploadImage(file: File, imgKey: String): TransferObserver? {
-        return transferUtility.upload("appgolda-pictures", imgKey, file)
+    fun uploadImage(file: File, imgKey: String) {
+        transferUtility.upload("appgolda-pictures", imgKey, file).setTransferListener(
+            object : TransferListener {
+                override fun onStateChanged(id: Int, state: TransferState) {
+                    Timber.d("onStateChanged")
+                    if (state == TransferState.COMPLETED) {
+                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
+                        val imageBitmap = BitmapFactory.decodeFile(imageFile)
+//                        reviewItemWithImage.imageBitmap = imageBitmap
+                    } else if (state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK) {
+                        Timber.d("upload failed")
+                    }
+                }
+
+                override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
+                    Timber.d("onProgressChanged")
+                }
+
+                override fun onError(id: Int, ex: Exception) {
+                    Timber.d("Error")
+                }
+            })
     }
 
     fun downloadPic(imageKey: String): TransferObserver? {

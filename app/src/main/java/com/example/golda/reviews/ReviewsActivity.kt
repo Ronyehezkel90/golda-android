@@ -46,7 +46,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     lateinit var currentUploadingImageReviewItem: ReviewItem
 
     companion object {
-        var imgFilePath: String = "/sdcard/{}.jpg"
+        var imgFilePath: String = "/sdcard/%s"
     }
 
     override fun onRequestPermissionsResult(
@@ -79,7 +79,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
     override fun onResume() {
         super.onResume()
-        setLoaderVisibility(showLoader = true)
+//        setLoaderVisibility(showLoader = true)
     }
 
     override fun createAdapter(topicItemsList: MutableList<TopicItem>) {

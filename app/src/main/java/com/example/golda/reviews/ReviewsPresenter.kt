@@ -1,11 +1,9 @@
 package com.example.golda.reviews
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.BitmapFactory
 import android.os.Environment
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferNetworkLossHandler
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState
 import com.example.golda.MongoManager
 import com.example.golda.Repository
@@ -15,7 +13,6 @@ import com.example.golda.model.TopicItem
 import com.example.golda.reviews.ReviewsActivity.Companion.imgFilePath
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
-import com.jakewharton.rxrelay2.BehaviorRelay
 import org.bson.Document
 import org.bson.types.ObjectId
 import timber.log.Timber
@@ -122,9 +119,13 @@ class ReviewsPresenter
 
     fun sendReview(branchId: ObjectId) {
 
-        for (topic in topicReviewsMap.values){
+        for (topic in topicReviewsMap.values) {
             for (review in topic)
-                s3Manager.uploadImage(File(imgFilePath.format(review.imageUrl)), review.imageUrl)
+                if (review.imageUrl != null)
+                    s3Manager.uploadImage(
+                        File(imgFilePath.format(review.imageUrl)),
+                        review.imageUrl
+                    )
         }
 
         val reviewerId = ObjectId(sharedPreferences.getString("userId", "no user id"))
@@ -177,11 +178,11 @@ class ReviewsPresenter
                 override fun onStateChanged(id: Int, state: TransferState) {
                     Timber.d("onStateChanged")
                     if (state == TransferState.COMPLETED) {
-                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
+                        val imageFile =
+                            File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
-                    }
-                    else if( state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK){
+                    } else if (state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK) {
                         Timber.d("upload failed")
                     }
                 }
@@ -201,7 +202,10 @@ class ReviewsPresenter
             ?.setTransferListener(object : TransferListener {
                 override fun onStateChanged(id: Int, state: TransferState) {
                     if (TransferState.COMPLETED == state) {
-                        val imageFile = File(Environment.getExternalStorageDirectory(), reviewItemWithImage.imageUrl).path
+                        val imageFile = File(
+                            Environment.getExternalStorageDirectory(),
+                            reviewItemWithImage.imageUrl
+                        ).path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
                         reduceReviewsAndTryToContinue()
