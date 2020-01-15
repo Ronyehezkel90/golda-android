@@ -79,7 +79,9 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
     override fun onResume() {
         super.onResume()
-        setSpinnerVisibility(true)
+        if (isManager) {
+            setSpinnerVisibility(true)
+        }
     }
 
     override fun setSpinnerVisibility(isVisible: Boolean) {
