@@ -23,4 +23,6 @@ interface ReviewsView : MvpView {
     fun downloadImageByKey(imageKey: ReviewItem, reviewFragment: ReviewFragment)
 
     fun updateItems(topicIdx: Int)
+
+    fun setSpinnerVisibility(isVisible: Boolean)
 }

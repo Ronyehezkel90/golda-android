@@ -215,7 +215,7 @@ class ReviewsPresenter
                 private fun reduceReviewsAndTryToContinue() {
                     reviewsNumber--
                     if (reviewsNumber == 0) {
-                        view.setLoaderVisibility(showLoader = false)
+                        view.setSpinnerVisibility(isVisible = false)
                     }
                 }
 
