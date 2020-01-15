@@ -79,7 +79,15 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
     override fun onResume() {
         super.onResume()
-        setLoaderVisibility(showLoader = true)
+        setSpinnerVisibility(true)
+    }
+
+    override fun setSpinnerVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            activity_progress_bar.visibility = View.VISIBLE
+        } else {
+            activity_progress_bar.visibility = View.GONE
+        }
     }
 
     override fun createAdapter(topicItemsList: MutableList<TopicItem>) {
