@@ -3,8 +3,6 @@ package com.example.golda.reviews
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
@@ -33,10 +31,7 @@ import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.lang.System.out
 
 
 @RuntimePermissions
@@ -47,10 +42,12 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     private var topicId: Int = -1
     lateinit var topicItemsList: MutableList<TopicItem>
     var isManager: Boolean = false
-    var tempFilePath: String = "/sdcard/temp_image.jpg"
     val fragments = mutableListOf<ReviewFragment>()
     lateinit var currentUploadingImageReviewItem: ReviewItem
 
+    companion object {
+        var imgFilePath: String = "/sdcard/{}.jpg"
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -126,9 +123,13 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val builder = StrictMode.VmPolicy.Builder()
         StrictMode.setVmPolicy(builder.build())
-        val uriSavedImage = Uri.fromFile(File(tempFilePath))
+
+        val imgKey = presenter.getImgKey(reviewItem._id)
+        reviewItem.imageUrl = imgKey
+
+        val uriSavedImage = Uri.fromFile(File(imgFilePath.format(imgKey)))
         callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage)
-        currentUploadingImageReviewItem = reviewItem
+//        currentUploadingImageReviewItem = reviewItem
         if (callCameraIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
         }
@@ -148,13 +149,14 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 if (resultCode == Activity.RESULT_OK) {
 
 
-//                    val originalBitmap = BitmapFactory.decodeStream(assets.open(tempFilePath))
+//                    val originalBitmap = BitmapFactory.decodeStream(assets.open(imgFilePath))
 //                    val out = ByteArrayOutputStream()
 //                    originalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
 //                    val decodedBitmap = BitmapFactory.decodeStream(ByteArrayInputStream(out.toByteArray()))
 
-
-                    presenter.uploadImage(File(tempFilePath), currentUploadingImageReviewItem)
+//                    val imgKey = presenter.getImgKey(currentUploadingImageReviewItem._id)
+//                    currentUploadingImageReviewItem.imageUrl = imgKey
+//                    presenter.uploadImage(File(imgFilePath), currentUploadingImageReviewItem)
                 }
             }
             else -> {
