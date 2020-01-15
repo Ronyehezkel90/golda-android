@@ -171,7 +171,7 @@ class ReviewsPresenter
                     Timber.d("onStateChanged")
                     if (state == TransferState.COMPLETED) {
                         reviewItemWithImage.imageUrl = imgKey
-                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.png").path
+                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
                         reviewItemWithImage.imageLoadedBehaviourRelay.accept(true)

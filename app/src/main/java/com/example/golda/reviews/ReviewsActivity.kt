@@ -3,6 +3,8 @@ package com.example.golda.reviews
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
@@ -31,7 +33,10 @@ import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.System.out
 
 
 @RuntimePermissions
@@ -42,7 +47,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     private var topicId: Int = -1
     lateinit var topicItemsList: MutableList<TopicItem>
     var isManager: Boolean = false
-    var tempFilePath: String = "/sdcard/temp_image.png"
+    var tempFilePath: String = "/sdcard/temp_image.jpg"
     val fragments = mutableListOf<ReviewFragment>()
     lateinit var currentUploadingImageReviewItem: ReviewItem
 
@@ -129,11 +134,20 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
             .show()
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
+
+
+//                    val originalBitmap = BitmapFactory.decodeStream(assets.open(tempFilePath))
+//                    val out = ByteArrayOutputStream()
+//                    originalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+//                    val decodedBitmap = BitmapFactory.decodeStream(ByteArrayInputStream(out.toByteArray()))
+
+
                     presenter.uploadImage(File(tempFilePath), currentUploadingImageReviewItem)
                 }
             }

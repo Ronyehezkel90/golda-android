@@ -10,6 +10,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.golda.R
 import com.example.golda.model.ReviewItem
 import kotlinx.android.synthetic.main.activity_reviews.*
+import android.webkit.WebView
+import android.R.attr.bitmap
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+
 
 class ReviewFragment(
     val idx: Int,
@@ -33,7 +38,7 @@ class ReviewFragment(
             { reviewPosition -> addComment(reviewPosition) },
             { imageUrl -> openImageGallery(imageUrl) },
             { imageKey -> downloadImageByKey(imageKey) },
-            {reviewItem -> subscribeToImageLoaded(reviewItem)}
+            { reviewItem -> subscribeToImageLoaded(reviewItem) }
 
         )
         (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
@@ -45,7 +50,7 @@ class ReviewFragment(
 
     private fun subscribeToImageLoaded(reviewItem: ReviewItem) {
         val reviewDisposable = reviewItem.imageLoadedBehaviourRelay.subscribe {
-            if(it){
+            if (it) {
                 (reviews_recycler_view.adapter as ReviewsAdapter).showImage()
             }
         }
@@ -57,7 +62,16 @@ class ReviewFragment(
 
     private fun openImageGallery(bitmap: Bitmap) {
         gallery_view_frame_layout.visibility = View.VISIBLE
-        gallery_view_image_view.setImageBitmap(bitmap)
+//        gallery_view_image_view.setImageBitmap(bitmap)
+
+        gallery_view_image_view.settings.builtInZoomControls = true
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        val imgageBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT)
+        val dataURL = "data:image/png;base64,$imgageBase64"
+
+        gallery_view_image_view.loadUrl(dataURL)
     }
 
     private fun addComment(reviewPosition: Int) {
