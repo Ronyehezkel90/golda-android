@@ -12,6 +12,7 @@ import com.example.golda.Repository
 import com.example.golda.S3Manager
 import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
+import com.example.golda.reviews.ReviewsActivity.Companion.imgFilePath
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -119,6 +120,12 @@ class ReviewsPresenter
     }
 
     fun sendReview(branchId: ObjectId) {
+
+        for (topic in topicReviewsMap.values){
+            for (review in topic)
+                s3Manager.uploadImage(File(imgFilePath.format(review.imageUrl)), review.imageUrl)
+        }
+
         val reviewerId = ObjectId(sharedPreferences.getString("userId", "no user id"))
         mongoManager.sendReview(topicReviewsMap)?.addOnSuccessListener {
             Timber.d("review inserted successfully")
@@ -131,9 +138,10 @@ class ReviewsPresenter
                     view.setLoaderVisibility(false)
                 }
         }?.addOnFailureListener { Timber.d("review insert failed") }
+
     }
 
-    private fun getImgKey(revId: ObjectId?): String {
+    fun getImgKey(revId: ObjectId?): String {
         return "$branchId-${date.replace('/', '-')}-$revId.png"
     }
 
@@ -162,15 +170,12 @@ class ReviewsPresenter
     }
 
     fun uploadImage(file: File, reviewItemWithImage: ReviewItem) {
-        val revId = reviewItemWithImage._id
-        val imgKey = getImgKey(revId)
 //        val transferNetworkLossHandler:TransferNetworkLossHandler = TransferNetworkLossHandler.getInstance(view as Context)
-        s3Manager.uploadImage(file, imgKey)?.setTransferListener(
+        s3Manager.uploadImage(file, reviewItemWithImage.imageUrl)?.setTransferListener(
             object : TransferListener {
                 override fun onStateChanged(id: Int, state: TransferState) {
                     Timber.d("onStateChanged")
                     if (state == TransferState.COMPLETED) {
-                        reviewItemWithImage.imageUrl = imgKey
                         val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
                         val imageBitmap = BitmapFactory.decodeFile(imageFile)
                         reviewItemWithImage.imageBitmap = imageBitmap
