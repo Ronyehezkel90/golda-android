@@ -3,8 +3,10 @@ package com.example.golda.reviews
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.os.StrictMode
 import android.provider.MediaStore
 import android.view.View
@@ -43,7 +45,7 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     lateinit var topicItemsList: MutableList<TopicItem>
     var isManager: Boolean = false
     val fragments = mutableListOf<ReviewFragment>()
-    lateinit var currentUploadingImageReviewItem: ReviewItem
+    lateinit var currentReviewItem: ReviewItem
 
     companion object {
         var imgFilePath: String = "/sdcard/%s"
@@ -66,7 +68,6 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reviews_view_pager)
-        //todo
         isManager = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE == ROLE.MANAGER
         presenter.branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
         presenter.date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
@@ -136,10 +137,10 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
 
         val imgKey = presenter.getImgKey(reviewItem._id)
         reviewItem.imageUrl = imgKey
+        currentReviewItem = reviewItem
 
         val uriSavedImage = Uri.fromFile(File(imgFilePath.format(imgKey)))
         callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage)
-//        currentUploadingImageReviewItem = reviewItem
         if (callCameraIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
         }
@@ -157,16 +158,9 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK) {
-
-
-//                    val originalBitmap = BitmapFactory.decodeStream(assets.open(imgFilePath))
-//                    val out = ByteArrayOutputStream()
-//                    originalBitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-//                    val decodedBitmap = BitmapFactory.decodeStream(ByteArrayInputStream(out.toByteArray()))
-
-//                    val imgKey = presenter.getImgKey(currentUploadingImageReviewItem._id)
-//                    currentUploadingImageReviewItem.imageUrl = imgKey
-//                    presenter.uploadImage(File(imgFilePath), currentUploadingImageReviewItem)
+                    val imageBitmap = BitmapFactory.decodeFile(imgFilePath.format(presenter.getImgKey(currentReviewItem._id)))
+                    currentReviewItem.imageBitmap = imageBitmap
+                    updateItems(currentReviewItem.topic)
                 }
             }
             else -> {

@@ -31,15 +31,14 @@ class ReviewsPresenter
 
     lateinit var branchId: ObjectId
     lateinit var date: String
-    private var reviewsNumber = 0
+    private var reviewsDownloadsCounter = 0
+    private var reviewsUploadCounter = 0
     val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
 
     fun displayResultReviews(branchId: ObjectId, date: String) {
         mongoManager.getReviews().addOnSuccessListener {
-            reviewsNumber = it.size
             it.forEach {
                 val reviewItem = gson.fromJson(it.toJson(), ReviewItem::class.java)
-                downloadImage(reviewItem)
                 if (reviewItem.topic !in topicReviewsMap) {
                     topicReviewsMap[reviewItem.topic] = ArrayList()
                 }
@@ -63,6 +62,11 @@ class ReviewsPresenter
                                 if (reviewDoc["comment"] == null) "" else reviewDoc["comment"] as String
                             review?.imageUrl =
                                 if (reviewDoc["image_url"] == null) "" else reviewDoc["image_url"] as String
+
+                            if (review != null && review?.imageUrl != "") {
+                                reviewsDownloadsCounter++
+                                downloadImage(review)
+                            }
                         }
                     }
                     displayTopics()
@@ -118,14 +122,46 @@ class ReviewsPresenter
     }
 
     fun sendReview(branchId: ObjectId) {
-
+        view.setSpinnerVisibility(isVisible = false)
         for (topic in topicReviewsMap.values) {
             for (review in topic)
-                if (review.imageUrl != null)
+                if (review.imageUrl != null) {
+                    reviewsDownloadsCounter++
                     s3Manager.uploadImage(
                         File(imgFilePath.format(review.imageUrl)),
                         review.imageUrl
-                    )
+                    )?.setTransferListener(
+                        object : TransferListener {
+                            private fun reduceUploadReviewsAndTryToContinue() {
+                                reviewsDownloadsCounter--
+                                if (reviewsDownloadsCounter == 0) {
+                                    view.setSpinnerVisibility(isVisible = false)
+                                }
+                            }
+
+                            override fun onStateChanged(id: Int, state: TransferState) {
+                                Timber.d("onStateChanged")
+                                if (state == TransferState.COMPLETED) {
+                                    reduceUploadReviewsAndTryToContinue()
+                                } else if (state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK) {
+                                    Timber.d("upload failed")
+                                }
+                            }
+
+                            override fun onProgressChanged(
+                                id: Int,
+                                bytesCurrent: Long,
+                                bytesTotal: Long
+                            ) {
+                                Timber.d("onProgressChanged")
+                            }
+
+                            override fun onError(id: Int, ex: Exception) {
+                                reduceUploadReviewsAndTryToContinue()
+                                Timber.d("Error")
+                            }
+                        })
+                }
         }
 
         val reviewerId = ObjectId(sharedPreferences.getString("userId", "no user id"))
@@ -147,55 +183,6 @@ class ReviewsPresenter
         return "$branchId-${date.replace('/', '-')}-$revId.png"
     }
 
-    private fun getTopicPositionByKey(imageKey: String): Int {
-        val revId = imageKey.substring(imageKey.findLastAnyOf(listOf("-"))?.first as Int + 1)
-        for ((j, reviewsByTopic) in topicReviewsMap.values.withIndex()) {
-            for ((i, review) in reviewsByTopic.withIndex()) {
-                if (review._id.toString() + ".png" == revId) {
-                    return j
-                }
-            }
-        }
-        return -1
-    }
-
-    private fun getItemPositionByKey(imageKey: String): Int {
-        val revId = imageKey.substring(imageKey.findLastAnyOf(listOf("-"))?.first as Int + 1)
-        for (reviewsByTopic in topicReviewsMap.values) {
-            for ((i, review) in reviewsByTopic.withIndex()) {
-                if (review._id.toString() + ".png" == revId) {
-                    return i
-                }
-            }
-        }
-        return -1
-    }
-
-    fun uploadImage(file: File, reviewItemWithImage: ReviewItem) {
-//        val transferNetworkLossHandler:TransferNetworkLossHandler = TransferNetworkLossHandler.getInstance(view as Context)
-        s3Manager.uploadImage(file, reviewItemWithImage.imageUrl)?.setTransferListener(
-            object : TransferListener {
-                override fun onStateChanged(id: Int, state: TransferState) {
-                    Timber.d("onStateChanged")
-                    if (state == TransferState.COMPLETED) {
-                        val imageFile =
-                            File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
-                        val imageBitmap = BitmapFactory.decodeFile(imageFile)
-                        reviewItemWithImage.imageBitmap = imageBitmap
-                    } else if (state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK) {
-                        Timber.d("upload failed")
-                    }
-                }
-
-                override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
-                    Timber.d("onProgressChanged")
-                }
-
-                override fun onError(id: Int, ex: Exception) {
-                    Timber.d("Error")
-                }
-            })
-    }
 
     fun downloadImage(reviewItemWithImage: ReviewItem) {
         s3Manager.downloadPic(reviewItemWithImage.imageUrl)
@@ -213,8 +200,8 @@ class ReviewsPresenter
                 }
 
                 private fun reduceReviewsAndTryToContinue() {
-                    reviewsNumber--
-                    if (reviewsNumber == 0) {
+                    reviewsDownloadsCounter--
+                    if (reviewsDownloadsCounter == 0) {
                         view.setSpinnerVisibility(isVisible = false)
                     }
                 }

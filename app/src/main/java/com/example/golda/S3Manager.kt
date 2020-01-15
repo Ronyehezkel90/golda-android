@@ -40,41 +40,8 @@ class S3Manager @Inject constructor(val context: Context) {
             .context(context).build()
     }
 
-    private fun bitmapToImage(imgAsBitmap: Bitmap, imgKey: String): File {
-        val imgAsFile = File(context.cacheDir, imgKey)
-        imgAsFile.createNewFile()
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        imgAsBitmap.compress(Bitmap.CompressFormat.PNG, 0, byteArrayOutputStream)
-        val bitmapData = byteArrayOutputStream.toByteArray()
-        val fileOutputStream = FileOutputStream(imgAsFile)
-        fileOutputStream.write(bitmapData)
-        fileOutputStream.flush()
-        fileOutputStream.close()
-        return imgAsFile
-    }
-
-    fun uploadImage(file: File, imgKey: String) {
-        transferUtility.upload("appgolda-pictures", imgKey, file).setTransferListener(
-            object : TransferListener {
-                override fun onStateChanged(id: Int, state: TransferState) {
-                    Timber.d("onStateChanged")
-                    if (state == TransferState.COMPLETED) {
-                        val imageFile = File(Environment.getExternalStorageDirectory(), "temp_image.jpg").path
-                        val imageBitmap = BitmapFactory.decodeFile(imageFile)
-//                        reviewItemWithImage.imageBitmap = imageBitmap
-                    } else if (state == TransferState.FAILED || state == TransferState.WAITING_FOR_NETWORK) {
-                        Timber.d("upload failed")
-                    }
-                }
-
-                override fun onProgressChanged(id: Int, bytesCurrent: Long, bytesTotal: Long) {
-                    Timber.d("onProgressChanged")
-                }
-
-                override fun onError(id: Int, ex: Exception) {
-                    Timber.d("Error")
-                }
-            })
+    fun uploadImage(file: File, imgKey: String): TransferObserver? {
+        return transferUtility.upload("appgolda-pictures", imgKey, file)
     }
 
     fun downloadPic(imageKey: String): TransferObserver? {

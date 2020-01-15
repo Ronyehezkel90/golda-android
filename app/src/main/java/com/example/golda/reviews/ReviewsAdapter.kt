@@ -70,30 +70,10 @@ class ReviewsAdapter(
         if (reviewItemList[position].imageBitmap != null) {
             holder.cameraButton.setImageBitmap(reviewItemList[position].imageBitmap)
         }
-        else if (isManager && reviewItemList[position].imageUrl != "") {
-            if (!holder.startDownload) {
-                downloadImageByKey(reviewItemList[position])
-                holder.cameraButton.setImageResource(R.drawable.ic_down)
-                holder.startDownload = true
-            }
-        }
-//        else if (isManager && reviewItemList[position].imageUrl != "") {
-//            holder.cameraButton.setImageResource(R.drawable.ic_down)
-//            downloadImageByKey(reviewItemList[position].imageUrl)
-//        }
     }
-
-//    fun setImageKeyToItem(itemPosition: Int, imgKey: String) {
-//        reviewItemList[itemPosition].imageUrl = imgKey
-//        downloadImageByKey(reviewItemList[itemPosition].imageUrl)
-//    }
 
     fun setCommentToItem(itemPosition: Int, comment: String) {
         reviewItemList[itemPosition].comment = comment
-        notifyDataSetChanged()
-    }
-
-    fun showImage() {
         notifyDataSetChanged()
     }
 
@@ -103,6 +83,5 @@ class ReviewsAdapter(
         val cameraButton = itemView.circle
         val ratingBar: RatingBar = itemView.rating_bar
         val commentButton: ImageView = itemView.comment_button
-        var startDownload: Boolean = false
     }
 }

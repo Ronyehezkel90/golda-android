@@ -53,16 +53,7 @@ class ReviewFragment(
 
     private fun openImageGallery(bitmap: Bitmap) {
         gallery_view_frame_layout.visibility = View.VISIBLE
-//        gallery_view_image_view.setImageBitmap(bitmap)
-
-        gallery_view_image_view.settings.builtInZoomControls = true
-        val byteArrayOutputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-        val byteArray = byteArrayOutputStream.toByteArray()
-        val imgageBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT)
-        val dataURL = "data:image/png;base64,$imgageBase64"
-
-        gallery_view_image_view.loadUrl(dataURL)
+        gallery_view_image_view.setImageBitmap(bitmap)
     }
 
     private fun addComment(reviewPosition: Int) {
