@@ -4,6 +4,7 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="goldaPurple">#280766</color>
+    <color name="lowPurple">#8E7EAA</color>
     <color name="purpleReviewBg">#56280766</color>
     <color name="starColor">#FAB300</color>
     <color name="grayCircleColor">#969595</color>

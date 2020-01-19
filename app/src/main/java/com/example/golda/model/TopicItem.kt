@@ -1,3 +1,5 @@
 package com.example.golda.model
 
-data class TopicItem(val id: Int, val topic: String)
+import org.bson.types.ObjectId
+
+data class TopicItem(val _id: ObjectId, val topic: String, var selected:Boolean = false)

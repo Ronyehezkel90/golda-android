@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.activity_reviews.*
 
 class ReviewFragment(
     val idx: Int,
-    val topicReviews: MutableList<ReviewItem>?,
+    val topicReviews: MutableList<ReviewItem>,
     val topicName: String
 ) : Fragment() {
 
@@ -33,7 +33,7 @@ class ReviewFragment(
             { reviewPosition -> addComment(reviewPosition) },
             { imageUrl -> openImageGallery(imageUrl) }
         )
-        (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews!!)
+        (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews)
         section_title.text = topicName
         super.onViewCreated(view, savedInstanceState)
     }
@@ -44,7 +44,8 @@ class ReviewFragment(
     }
 
     private fun addComment(reviewPosition: Int) {
-        (activity as ReviewsActivity).addComment(this, reviewPosition)
+        val topicId = topicReviews[reviewPosition].topic
+        (activity as ReviewsActivity).addComment(this, reviewPosition, topicId)
     }
 
     private fun takePhoto(reviewPosition: Int) {

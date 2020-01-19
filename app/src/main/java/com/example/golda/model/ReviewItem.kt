@@ -7,9 +7,10 @@ data class ReviewItem(
     val _id: ObjectId,
     val title: String,
     val subtitle: String,
-    val topic: Int,
+    val topic: ObjectId,
     var imageBitmap: Bitmap? = null,
     var imageUrl: String,
     var rank: Int = -1,
-    var comment: String
+    var comment: String,
+    var selected: Boolean = false
 )

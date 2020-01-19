@@ -80,10 +80,10 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         return (reviewFragment.reviews_recycler_view.adapter as ReviewsAdapter)
     }
 
-    override fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int) {
+    override fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int, topicId:ObjectId) {
         val editText = EditText(this)
         editText.setText(
-            presenter.topicReviewsMap[reviewFragment.idx]?.get(reviewPosition)?.comment
+            presenter.topicReviewsMap[topicId]?.get(reviewPosition)?.comment
         )
         editText.isEnabled = !isManager
         val alert = AlertDialog.Builder(this)
@@ -145,8 +145,8 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         presenter.updateReviewItemRank(reviewId, rank)
     }
 
-    override fun goToTopic(topicId: Int) {
-        reviews_view_pager.currentItem = topicId + 1
+    override fun goToTopic(pos: Int) {
+        reviews_view_pager.currentItem = pos + 1
     }
 
     override fun showTopics(topicItemsList: MutableList<TopicItem>) {
@@ -173,9 +173,12 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 topicsFragment.showTopics(topicItemsList)
                 return topicsFragment
             } else {
+                val topicReviewsList = presenter.topicReviewsMap[topicItemsList[position-1]._id]
+                val reviewItemsList =
+                    if (topicReviewsList.isNullOrEmpty()) mutableListOf() else topicReviewsList
                 ReviewFragment(
                     position - 1,
-                    presenter.topicReviewsMap[position - 1],
+                    reviewItemsList,
                     topicItemsList[position - 1].topic
                 )
             }

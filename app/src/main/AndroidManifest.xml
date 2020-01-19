@@ -17,7 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".administration.AdministrationActivity"></activity>
+        <activity android:name=".editor.modifier.ModifierActivity"></activity>
+        <activity android:name=".editor.managment.EditorActivity" />
+        <activity android:name=".administration.AdministrationActivity" />
         <activity android:name=".reviews.ReviewsActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

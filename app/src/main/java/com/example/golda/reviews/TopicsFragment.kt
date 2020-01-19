@@ -32,7 +32,7 @@ class TopicsFragment : Fragment() {
 
     fun showTopics(topicItemsList: MutableList<TopicItem>) {
         topicsAdapter =
-            TopicsAdapter { topicId -> (activity as ReviewsActivity).goToTopic(topicId) }
+            TopicsAdapter { position -> (activity as ReviewsActivity).goToTopic(position) }
         topicsAdapter.updateTopics(topicItemsList)
     }
 }

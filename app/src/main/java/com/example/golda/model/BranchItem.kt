@@ -7,5 +7,6 @@ data class BranchItem(
     val managerId: ObjectId,
     val name: String,
     val address: String,
-    var phone: String
+    var phone: String,
+    var selected: Boolean = false
 )

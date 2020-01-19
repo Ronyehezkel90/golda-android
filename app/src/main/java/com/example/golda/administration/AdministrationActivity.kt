@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter
 import com.example.golda.R
 import com.example.golda.administration.AdministrationPresenter.ROLE
 import com.example.golda.dagger.App
+import com.example.golda.editor.managment.EditorActivity
 import com.example.golda.model.BranchItem
 import com.example.golda.reviews.ReviewsActivity
 import com.hannesdorfmann.mosby.mvp.MvpActivity
@@ -51,6 +52,8 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
                 set_review_button.visibility = View.GONE
             }
             ROLE.SUPER -> {
+                val intent = Intent(this, EditorActivity::class.java)
+                startActivity(intent)
             }
         }
     }

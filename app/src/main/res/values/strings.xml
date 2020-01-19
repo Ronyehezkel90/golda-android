@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">Golda</string>
     <string name="my_app_id">golda-dxwyb</string>
+
+    <string-array name="user_roles">
+        <item>Role</item>
+        <item>manager</item>
+        <item>reviewer</item>
+        <item>super</item>
+    </string-array>
 </resources>

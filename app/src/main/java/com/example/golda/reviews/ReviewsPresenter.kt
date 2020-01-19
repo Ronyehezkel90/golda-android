@@ -19,7 +19,7 @@ class ReviewsPresenter
 
 ) : MvpNullObjectBasePresenter<ReviewsView>() {
 
-    val topicReviewsMap = mutableMapOf<Int, MutableList<ReviewItem>>()
+    val topicReviewsMap = mutableMapOf<ObjectId, MutableList<ReviewItem>>()
 
     fun displayResultReviews(branchId: ObjectId, date: String) {
         mongoManager.getReviews().addOnSuccessListener {
@@ -93,7 +93,6 @@ class ReviewsPresenter
             it.forEach {
                 topicItemsList.add(gson.fromJson(it.toJson(), TopicItem::class.java))
             }
-            topicItemsList.sortBy { it.id }
             view.createAdapter(topicItemsList)
         }.addOnFailureListener {
             Timber.e("Topics failure")

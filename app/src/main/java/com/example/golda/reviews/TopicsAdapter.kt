@@ -24,7 +24,7 @@ class TopicsAdapter(val topicOnClick: (Int) -> Unit) : RecyclerView.Adapter<Topi
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = topicItemList[position].topic
         holder.itemView.setOnClickListener {
-            topicOnClick(topicItemList[position].id)
+            topicOnClick(position)
         }
     }
 

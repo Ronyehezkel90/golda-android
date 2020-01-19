@@ -56,7 +56,7 @@ class MainActivity : MvpActivity<MvpView, MainPresenter>() {
             chosenRole == "" -> error_text_view.text = "Please choose role first"
             userTxt !in presenter.usersMap.keys -> error_text_view.text = "I don't know $userTxt"
             passwordTxt != presenter.usersMap[userTxt]?.password -> error_text_view.text = "Wrong password for $userTxt"
-            chosenRole != presenter.usersMap[userTxt]?.role -> error_text_view.text = "$userTxt can't sign in as $chosenRole"
+            chosenRole != "super" && chosenRole != presenter.usersMap[userTxt]?.role -> error_text_view.text = "$userTxt can't sign in as $chosenRole"
             else -> {
                 presenter.saveUserToSharedPref(presenter.usersMap[userTxt]?._id?.toHexString())
                 getRoleEnumByString(chosenRole)

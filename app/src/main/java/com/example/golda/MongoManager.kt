@@ -2,12 +2,17 @@ package com.example.golda
 
 import android.content.SharedPreferences
 import com.example.golda.model.ReviewItem
+import com.example.golda.model.TopicItem
+import com.example.golda.model.UserItem
 import com.google.android.gms.tasks.Task
+import com.google.gson.Gson
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.mongodb.stitch.android.core.StitchAppClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoClient
 import com.mongodb.stitch.android.services.mongodb.remote.RemoteMongoDatabase
 import com.mongodb.stitch.core.auth.providers.anonymous.AnonymousCredential
+import com.mongodb.stitch.core.services.mongodb.remote.RemoteDeleteResult
+import com.mongodb.stitch.core.services.mongodb.remote.RemoteInsertOneResult
 import org.bson.*
 import org.bson.types.ObjectId
 import timber.log.Timber
@@ -20,7 +25,8 @@ import javax.inject.Singleton
 @Singleton
 class MongoManager @Inject constructor(
     private val sharedPreferences: SharedPreferences,
-    private val stitchAppClient: StitchAppClient
+    private val stitchAppClient: StitchAppClient,
+    private val gson: Gson
 ) {
 
     val mongoDb: RemoteMongoDatabase
@@ -83,8 +89,8 @@ class MongoManager @Inject constructor(
 
     fun getUsers(): Task<MutableList<Document>> {
         val result = mutableListOf<Document>()
-        val reviewItemsCollection = mongoDb.getCollection("users")
-        return reviewItemsCollection.find().into(result)
+        val usersItemsCollection = mongoDb.getCollection("users")
+        return usersItemsCollection.find().into(result)
 
     }
 
@@ -102,7 +108,7 @@ class MongoManager @Inject constructor(
     }
 
     fun sendReview(
-        topicReviewsMap: MutableMap<Int, MutableList<ReviewItem>>,
+        topicReviewsMap: MutableMap<ObjectId, MutableList<ReviewItem>>,
         branchId: ObjectId,
         reviewerId: ObjectId
     ) {
@@ -148,6 +154,71 @@ class MongoManager @Inject constructor(
         reviewMediatorCollection.insertOne(document)
 
         return
+    }
+
+    fun addUser(userItem: UserItem): Task<RemoteInsertOneResult>? {
+        val usersItemsCollection = mongoDb.getCollection("users")
+        val document = Document()
+        document.append("_id", userItem._id)
+        document.append("name", userItem.name)
+        document.append("password", userItem.password)
+        document.append("role", userItem.role)
+        return usersItemsCollection.insertOne(document)
+    }
+
+    fun removeUser(userId: ObjectId): Task<RemoteDeleteResult>? {
+        val usersItemsCollection = mongoDb.getCollection("users")
+        return usersItemsCollection.deleteOne(BsonDocument("_id", BsonObjectId(userId)))
+    }
+
+    fun removeTopic(topicId: ObjectId): Task<RemoteDeleteResult>? {
+        val usersItemsCollection = mongoDb.getCollection("topicItems")
+        return usersItemsCollection.deleteOne(BsonDocument("_id", BsonObjectId(topicId)))
+    }
+
+    fun addTopic(topicItem: TopicItem): Task<RemoteInsertOneResult>? {
+        val topicItemsCollection = mongoDb.getCollection("topicItems")
+        val document = Document()
+        document.append("_id", topicItem._id)
+        document.append("topic", topicItem.topic)
+        return topicItemsCollection.insertOne(document)
+    }
+
+    fun removeReview(reviewId: ObjectId): Task<RemoteDeleteResult>? {
+        val usersItemsCollection = mongoDb.getCollection("reviewItems")
+        return usersItemsCollection.deleteOne(BsonDocument("_id", BsonObjectId(reviewId)))
+    }
+
+    fun addReview(
+        reviewId: ObjectId,
+        title: String,
+        subtitle: String,
+        topicId: ObjectId
+    ): Task<RemoteInsertOneResult>? {
+        val reviewItemsCollection = mongoDb.getCollection("reviewItems")
+        val document = Document()
+        document.append("_id", reviewId)
+        document.append("title", title)
+        document.append("subtitle", subtitle)
+        document.append("topic", topicId)
+        return reviewItemsCollection.insertOne(document)
+    }
+
+    fun addBranch(
+        objectId: ObjectId,
+        name: String,
+        address: String,
+        phone: String,
+        managerObjectId: ObjectId
+    ): Task<RemoteInsertOneResult>? {
+        val branchItemsCollection = mongoDb.getCollection("branches")
+        val document = Document()
+        document.append("_id", objectId)
+        document.append("name", name)
+        document.append("address", address)
+        document.append("phone", phone)
+        document.append("managerId", managerObjectId)
+        return branchItemsCollection.insertOne(document)
     }
 
 }
