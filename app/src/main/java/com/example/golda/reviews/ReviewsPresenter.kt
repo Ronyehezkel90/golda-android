@@ -115,13 +115,15 @@ class ReviewsPresenter
                 topicItemsList.add(gson.fromJson(it.toJson(), TopicItem::class.java))
             }
             view.createAdapter(topicItemsList)
+            if(reviewsDownloadsCounter==0){
+                view.setSpinnerVisibility(false)
+            }
         }.addOnFailureListener {
             Timber.e("Topics failure")
         }
     }
 
     fun sendReview(branchId: ObjectId) {
-        view.setSpinnerVisibility(isVisible = false)
         for (topic in topicReviewsMap.values) {
             for (review in topic)
                 if (review.imageUrl != null) {

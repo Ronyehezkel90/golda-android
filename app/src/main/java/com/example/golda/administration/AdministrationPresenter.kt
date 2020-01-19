@@ -51,7 +51,7 @@ class AdministrationPresenter
     }
 
     fun setCurrentDate() {
-        view.setDates(mutableListOf(SimpleDateFormat("dd/MM/yyyy").format(Date())))
+        view.setDates(mutableListOf(SimpleDateFormat("dd/MM/yyyy - HH:mm").format(Date())))
     }
 
     fun getChosenBranchObjectIdByPosition(selectedItemPosition: Int): ObjectId {

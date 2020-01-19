@@ -144,7 +144,7 @@ class MongoManager @Inject constructor(
         document.append("reviewResultId", reviewResultId)
         document.append("branchId", branchId)
         document.append("reviewerId", reviewerId)
-        document.append("date", SimpleDateFormat("dd/MM/yyyy").format(Date()))
+        document.append("date", SimpleDateFormat("dd/MM/yyyy - HH:mm").format(Date()))
         return reviewMediatorCollection.insertOne(document)
     }
 
