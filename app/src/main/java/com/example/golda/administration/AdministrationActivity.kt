@@ -48,14 +48,9 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
         when (role) {
             ROLE.REVIEWER -> {
                 watch_review_button.visibility = View.GONE
-                track_review_button.visibility = View.GONE
             }
             ROLE.MANAGER -> {
                 set_review_button.visibility = View.GONE
-            }
-            ROLE.SUPER -> {
-                val intent = Intent(this, EditorActivity::class.java)
-                startActivity(intent)
             }
         }
     }

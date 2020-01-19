@@ -55,6 +55,7 @@
             android:text="Branch"
             android:textColor="@color/white"
             android:textSize="25sp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -63,26 +64,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/branch_text_view" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/branch_text_view" />
 
 
         <TextView
             android:id="@+id/date_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="20dp"
             android:text="Date"
             android:textColor="@color/white"
             android:textSize="25sp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/branch_text_view" />
+            app:layout_constraintTop_toBottomOf="@id/branches_spinner" />
 
         <Spinner
             android:id="@+id/date_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/date_text_view" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/date_text_view" />
 
         <Button
             android:id="@+id/set_review_button"
@@ -99,22 +103,14 @@
             android:id="@+id/watch_review_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="50dp"
             android:onClick="setReviewClicked"
             android:text="Watch Review"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/set_review_button" />
 
-        <Button
-            android:id="@+id/track_review_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Reviews Tracking"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/watch_review_button" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

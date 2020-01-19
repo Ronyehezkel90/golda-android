@@ -66,45 +66,13 @@
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:hint="Password"
-            android:inputType="text"
+            android:inputType="textPassword"
             android:textColor="@color/grayCircleColor"
             android:textColorHint="@color/grayCircleColor"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/name_edit_text"/>
 
-
-        <Button
-            android:id="@+id/super_manager"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="50dp"
-            android:onClick="reviewerClicked"
-            android:text="super"
-            android:background="@color/grayRoleButton"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/password_edit_text" />
-
-        <Button
-            android:id="@+id/manager"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:background="@color/grayRoleButton"
-            android:onClick="reviewerClicked"
-            android:text="manager"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="@id/super_manager" />
-
-        <Button
-            android:id="@+id/reviewer"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:onClick="reviewerClicked"
-            android:text="reviewer"
-            android:background="@color/grayRoleButton"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@id/super_manager" />
 
         <Button
             android:id="@+id/ok_button"
@@ -115,7 +83,7 @@
             android:text="ok"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/super_manager" />
+            app:layout_constraintTop_toBottomOf="@id/password_edit_text" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
