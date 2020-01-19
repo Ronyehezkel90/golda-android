@@ -3,8 +3,10 @@ package com.example.golda.reviews
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.os.StrictMode
 import android.provider.MediaStore
 import android.view.View
 import android.widget.EditText
@@ -19,30 +21,34 @@ import com.example.golda.administration.AdministrationActivity.Companion.BRANCH_
 import com.example.golda.administration.AdministrationActivity.Companion.CHOSEN_DATE_EXTRA
 import com.example.golda.administration.AdministrationPresenter.ROLE
 import com.example.golda.dagger.App
+import com.example.golda.model.ReviewItem
 import com.example.golda.model.TopicItem
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import kotlinx.android.synthetic.main.activity_reviews.*
+import kotlinx.android.synthetic.main.fragment_topics.*
 import kotlinx.android.synthetic.main.reviews_view_pager.*
 import org.bson.types.ObjectId
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
 import timber.log.Timber
+import java.io.File
 
 
 @RuntimePermissions
 class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsView {
 
     private val CAMERA_REQUEST_CODE: Int = 101
-    private var itemPosition: Int = -1
     lateinit var topicsFragment: TopicsFragment
-    private lateinit var fragmentCameraClicked: ReviewFragment
     private var topicId: Int = -1
     lateinit var topicItemsList: MutableList<TopicItem>
-    lateinit var branchId: ObjectId
-    lateinit var date: String
     var isManager: Boolean = false
+    val fragments = mutableListOf<ReviewFragment>()
+    lateinit var currentReviewItem: ReviewItem
 
+    companion object {
+        var imgFilePath: String = "/sdcard/%s"
+    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -62,25 +68,45 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reviews_view_pager)
         isManager = intent.getSerializableExtra(ADMINISTRATION_ROLE_EXTRA) as ROLE == ROLE.MANAGER
-        branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
+        presenter.branchId = intent.getSerializableExtra(BRANCH_ID_EXTRA) as ObjectId
+        presenter.date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
         if (isManager) {
-            date = intent.getStringExtra(CHOSEN_DATE_EXTRA)
-            presenter.displayResultReviews(branchId, date)
+            presenter.displayResultReviews(presenter.branchId, presenter.date)
         } else {
             presenter.displayReviews()
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (isManager) {
+            setSpinnerVisibility(true)
+        }
+    }
+
+    override fun setSpinnerVisibility(isVisible: Boolean) {
+        if (isVisible) {
+            activity_progress_bar.visibility = View.VISIBLE
+        } else {
+            activity_progress_bar.visibility = View.GONE
+        }
+    }
+
     override fun createAdapter(topicItemsList: MutableList<TopicItem>) {
+        this.topicItemsList = topicItemsList
         reviews_view_pager.adapter = ScreenSlidePagerAdapter(this, topicItemsList)
         reviews_view_pager.currentItem = topicId
     }
 
-    private fun getFragmentAdapter(reviewFragment: ReviewFragment): ReviewsAdapter {
+    override fun getFragmentAdapter(reviewFragment: ReviewFragment): ReviewsAdapter {
         return (reviewFragment.reviews_recycler_view.adapter as ReviewsAdapter)
     }
 
-    override fun addComment(reviewFragment: ReviewFragment, reviewPosition: Int, topicId:ObjectId) {
+    override fun addComment(
+        reviewFragment: ReviewFragment,
+        reviewPosition: Int,
+        topicId: ObjectId
+    ) {
         val editText = EditText(this)
         editText.setText(
             presenter.topicReviewsMap[topicId]?.get(reviewPosition)?.comment
@@ -103,11 +129,22 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         alert.show()
     }
 
-    @NeedsPermission(Manifest.permission.CAMERA)
-    fun launchCamera(fragment: ReviewFragment, position: Int) {
+    @NeedsPermission(
+        Manifest.permission.CAMERA,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE
+    )
+    fun launchCamera(reviewItem: ReviewItem) {
         val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        itemPosition = position
-        fragmentCameraClicked = fragment
+        val builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
+
+        val imgKey = presenter.getImgKey(reviewItem._id)
+        reviewItem.imageUrl = imgKey
+        currentReviewItem = reviewItem
+
+        val uriSavedImage = Uri.fromFile(File(imgFilePath.format(imgKey)))
+        callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uriSavedImage)
         if (callCameraIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
         }
@@ -119,24 +156,23 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
             .show()
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && data != null) {
-                    Timber.d("picture ok")
-                    if (itemPosition != -1) {
-                        getFragmentAdapter(fragmentCameraClicked).setImageToItem(
-                            itemPosition,
-                            data.extras!!.get("data") as Bitmap
+                if (resultCode == Activity.RESULT_OK) {
+                    val imageBitmap = BitmapFactory.decodeFile(
+                        imgFilePath.format(
+                            presenter.getImgKey(currentReviewItem._id)
                         )
-                        itemPosition = -1
-                    }
+                    )
+                    currentReviewItem.imageBitmap = imageBitmap
+                    updateItems(currentReviewItem.topic)
                 }
             }
             else -> {
                 Timber.d("picture failed")
-//                Toast.makeText(this,"Unrecognized request code",Toast.LENGTH_SHORT)
             }
         }
     }
@@ -161,6 +197,40 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
         }
     }
 
+    override fun downloadImageByKey(
+        reviewItemWithImage: ReviewItem,
+        reviewFragment: ReviewFragment
+    ) {
+        return presenter.downloadImage(reviewItemWithImage)
+    }
+
+    fun getFragmentIdx(topicId: ObjectId): Int {
+        for ((idx, topic) in topicItemsList.withIndex()) {
+            if (topic._id == topicId) {
+                return idx
+            }
+        }
+        return -1
+    }
+
+    override fun updateItems(topicId: ObjectId) {
+        getFragmentAdapter(fragments[getFragmentIdx(topicId)]).updateItems(presenter.topicReviewsMap[topicId]!!)
+    }
+
+    fun sendButtonClicked(view: View) {
+        setLoaderVisibility(true)
+        presenter.sendReview(presenter.branchId)
+    }
+
+    override fun setLoaderVisibility(showLoader: Boolean) {
+        send_button.isClickable = !showLoader
+        loader_spinner.visibility = if (showLoader) View.VISIBLE else View.GONE
+    }
+
+    override fun closeActivity() {
+        finish()
+    }
+
     private inner class ScreenSlidePagerAdapter(
         fa: FragmentActivity,
         val topicItemsList: MutableList<TopicItem>
@@ -173,24 +243,18 @@ class ReviewsActivity : MvpActivity<ReviewsView, ReviewsPresenter>(), ReviewsVie
                 topicsFragment.showTopics(topicItemsList)
                 return topicsFragment
             } else {
-                val topicReviewsList = presenter.topicReviewsMap[topicItemsList[position-1]._id]
+                val topicReviewsList = presenter.topicReviewsMap[topicItemsList[position - 1]._id]
                 val reviewItemsList =
                     if (topicReviewsList.isNullOrEmpty()) mutableListOf() else topicReviewsList
-                ReviewFragment(
+                val revFragment = ReviewFragment(
                     position - 1,
                     reviewItemsList,
                     topicItemsList[position - 1].topic
                 )
+                fragments.add(revFragment)
+                return revFragment
             }
         }
-    }
-
-    fun sendButtonClicked(view: View) {
-        presenter.sendReview(branchId)
-    }
-
-    fun outsideGalleryViewClicked(view: View) {
-        gallery_view_frame_layout.visibility = View.GONE
     }
 
 }

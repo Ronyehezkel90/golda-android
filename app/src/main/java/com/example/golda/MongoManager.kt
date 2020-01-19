@@ -108,10 +108,8 @@ class MongoManager @Inject constructor(
     }
 
     fun sendReview(
-        topicReviewsMap: MutableMap<ObjectId, MutableList<ReviewItem>>,
-        branchId: ObjectId,
-        reviewerId: ObjectId
-    ) {
+        topicReviewsMap: MutableMap<ObjectId, MutableList<ReviewItem>>
+    ): Task<RemoteInsertOneResult>? {
         val document = Document()
         val topicsList = arrayListOf<MutableMap<String, Any>>()
         for (topic in topicReviewsMap) {
@@ -131,29 +129,23 @@ class MongoManager @Inject constructor(
             document.append("topics", topicsList)
         }
         val reviewResultItemsCollection = mongoDb.getCollection("reviewsResults")
-        reviewResultItemsCollection.insertOne(document)
-            .addOnSuccessListener {
-                Timber.d("review inserted successfully")
-                insertMediatorDoc(it.insertedId, branchId, reviewerId)
-            }
-            .addOnFailureListener { Timber.d("review insert failed") }
+        return reviewResultItemsCollection.insertOne(document)
+
 
     }
 
-    private fun insertMediatorDoc(
+    fun insertMediatorDoc(
         reviewResultId: BsonValue,
         branchId: ObjectId,
         reviewerId: ObjectId
-    ) {
+    ): Task<RemoteInsertOneResult>? {
         val reviewMediatorCollection = mongoDb.getCollection("reviewMediator")
         val document = Document()
         document.append("reviewResultId", reviewResultId)
         document.append("branchId", branchId)
         document.append("reviewerId", reviewerId)
         document.append("date", SimpleDateFormat("dd/MM/yyyy").format(Date()))
-        reviewMediatorCollection.insertOne(document)
-
-        return
+        return reviewMediatorCollection.insertOne(document)
     }
 
     fun addUser(userItem: UserItem): Task<RemoteInsertOneResult>? {

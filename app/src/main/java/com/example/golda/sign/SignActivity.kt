@@ -1,14 +1,15 @@
-package com.example.golda
+package com.example.golda.sign
 
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import com.example.golda.dagger.App
+import com.example.golda.R
 import com.example.golda.administration.AdministrationActivity
 import com.example.golda.administration.AdministrationActivity.Companion.ADMINISTRATION_NAME_EXTRA
 import com.example.golda.administration.AdministrationActivity.Companion.ADMINISTRATION_ROLE_EXTRA
 import com.example.golda.administration.AdministrationPresenter
+import com.example.golda.dagger.App
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import com.hannesdorfmann.mosby.mvp.MvpView
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,10 +17,9 @@ import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
-
-class MainActivity : MvpActivity<MvpView, MainPresenter>() {
+class SignActivity : MvpActivity<MvpView, SignPresenter>() {
     var chosenRole = ""
-    override fun createPresenter(): MainPresenter {
+    override fun createPresenter(): SignPresenter {
         return App.getAppComponent(this).getMainComponent().presenter
     }
 
@@ -55,8 +55,10 @@ class MainActivity : MvpActivity<MvpView, MainPresenter>() {
         when {
             chosenRole == "" -> error_text_view.text = "Please choose role first"
             userTxt !in presenter.usersMap.keys -> error_text_view.text = "I don't know $userTxt"
-            passwordTxt != presenter.usersMap[userTxt]?.password -> error_text_view.text = "Wrong password for $userTxt"
-            chosenRole != "super" && chosenRole != presenter.usersMap[userTxt]?.role -> error_text_view.text = "$userTxt can't sign in as $chosenRole"
+            passwordTxt != presenter.usersMap[userTxt]?.password -> error_text_view.text =
+                "Wrong password for $userTxt"
+            chosenRole != presenter.usersMap[userTxt]?.role -> error_text_view.text =
+                "$userTxt can't sign in as $chosenRole"
             else -> {
                 presenter.saveUserToSharedPref(presenter.usersMap[userTxt]?._id?.toHexString())
                 getRoleEnumByString(chosenRole)
@@ -83,5 +85,6 @@ class MainActivity : MvpActivity<MvpView, MainPresenter>() {
             else -> AdministrationPresenter.ROLE.REVIEWER
         }
     }
+
 }
 

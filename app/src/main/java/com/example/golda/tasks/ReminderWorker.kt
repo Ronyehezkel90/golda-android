@@ -30,6 +30,6 @@
 //            .setContentTitle(title)
 //            .setContentText(message)
 //            .setSmallIcon(R.mipmap.ic_launcher)
-//        notificationManager.notify(1, notification.build())
+//        notificationManager.notifyDataChange(1, notification.build())
 //    }
 //}

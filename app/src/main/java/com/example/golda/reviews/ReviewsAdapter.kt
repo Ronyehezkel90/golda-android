@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RatingBar
 import androidx.recyclerview.widget.RecyclerView
-import coil.api.load
 import com.example.golda.R
 import com.example.golda.model.ReviewItem
 import kotlinx.android.synthetic.main.review_item.view.*
@@ -15,10 +14,11 @@ import org.bson.types.ObjectId
 
 class ReviewsAdapter(
     private val isManager: Boolean,
-    val cameraOnClick: (Int) -> Unit,
+    val cameraOnClick: (ReviewItem) -> Unit,
     val ratingBarOnChange: (ObjectId, Int) -> Unit,
     val commentOnClick: (Int) -> Unit,
-    val openImageGallery: (String) -> Unit
+    val openImageGallery: (Bitmap) -> Unit,
+    val downloadImageByKey: (ReviewItem) -> Unit
 
 ) :
     RecyclerView.Adapter<ReviewsAdapter.ViewHolder>() {
@@ -53,30 +53,23 @@ class ReviewsAdapter(
         holder.ratingBar.setOnRatingBarChangeListener { ratingBar, rank, b ->
             ratingBarOnChange(reviewItemList[position]._id, rank.toInt())
         }
-        if (reviewItemList[position].imageUrl != "") {
-            holder.cameraButton.load(reviewItemList[position].imageUrl)
-        }
         holder.cameraButton.setOnClickListener {
             if (isManager) {
-                if (reviewItemList[position].imageUrl != "") {
-                    openImageGallery(reviewItemList[position].imageUrl)
+                if (reviewItemList[position].imageBitmap != null) {
+                    openImageGallery(reviewItemList[position].imageBitmap!!)
                 }
             } else {
-                cameraOnClick(position)
+                cameraOnClick(reviewItemList[position])
+                holder.cameraButton.setImageResource(R.drawable.ic_down)
+
             }
         }
         holder.commentButton.setOnClickListener {
             commentOnClick(position)
         }
-        //todo: after we implement upload images to s3 we should remove imageBitmap and rely only on imageUrl
         if (reviewItemList[position].imageBitmap != null) {
             holder.cameraButton.setImageBitmap(reviewItemList[position].imageBitmap)
         }
-    }
-
-    fun setImageToItem(itemPosition: Int, bitmap: Bitmap) {
-        reviewItemList[itemPosition].imageBitmap = bitmap
-        notifyDataSetChanged()
     }
 
     fun setCommentToItem(itemPosition: Int, comment: String) {

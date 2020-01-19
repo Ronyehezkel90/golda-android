@@ -1,7 +1,8 @@
-package com.example.golda
+package com.example.golda.sign
 
 import android.content.SharedPreferences
 import android.util.ArrayMap
+import com.example.golda.MongoManager
 import com.example.golda.model.UserItem
 import com.google.gson.Gson
 import com.hannesdorfmann.mosby.mvp.MvpNullObjectBasePresenter
@@ -10,7 +11,8 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import timber.log.Timber
 import javax.inject.Inject
 
-class MainPresenter @Inject constructor(
+
+class SignPresenter @Inject constructor(
     private val mongoManager: MongoManager,
     private val gson: Gson,
     private val sharedPreferences: SharedPreferences

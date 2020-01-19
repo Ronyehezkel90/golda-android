@@ -6,4 +6,6 @@ import com.hannesdorfmann.mosby.mvp.MvpView
 interface AdministrationView : MvpView {
     fun setBranches(branchesList: MutableList<BranchItem>)
     fun setDates(datesList: MutableList<String>)
+    fun setLoaderVisibility(showLoader: Boolean)
+
 }

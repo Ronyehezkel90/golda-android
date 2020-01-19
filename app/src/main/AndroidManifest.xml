@@ -21,13 +21,14 @@
         <activity android:name=".editor.managment.EditorActivity" />
         <activity android:name=".administration.AdministrationActivity" />
         <activity android:name=".reviews.ReviewsActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".sign.SignActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name="com.amazonaws.mobileconnectors.s3.transferutility.TransferService" android:enabled="true" />
     </application>
 
 </manifest>

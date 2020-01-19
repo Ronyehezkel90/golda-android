@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/goldaPurple"
-    tools:context=".MainActivity">
+    tools:context=".sign.SignActivity">
 
     <ImageView
         android:id="@+id/logo"
@@ -24,35 +24,67 @@
         android:id="@+id/main_layout"
         android:visibility="gone"
         tools:visibility="visible"
-        android:layout_marginTop="150dp"
-        android:layout_marginBottom="150dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageView
+            android:id="@+id/top_logo"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/ic_logo"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
         <TextView
             android:id="@+id/error_text_view"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="200dp"
             android:gravity="center"
             android:textColor="@color/white"
             android:textSize="30sp"
-            app:layout_constraintBottom_toTopOf="@id/super_manager"
+            app:layout_constraintTop_toBottomOf="@id/top_logo"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/name_edit_text"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:hint="Name"
+            android:inputType="text"
+            android:textColor="@color/grayCircleColor"
+            android:textColorHint="@color/grayCircleColor"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/error_text_view"/>
+
+        <androidx.appcompat.widget.AppCompatEditText
+            android:id="@+id/password_edit_text"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:hint="Password"
+            android:inputType="text"
+            android:textColor="@color/grayCircleColor"
+            android:textColorHint="@color/grayCircleColor"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/name_edit_text"/>
+
 
         <Button
             android:id="@+id/super_manager"
             android:layout_width="100dp"
             android:layout_height="50dp"
+            android:layout_marginTop="50dp"
             android:onClick="reviewerClicked"
             android:text="super"
             android:background="@color/grayRoleButton"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/error_text_view" />
+            app:layout_constraintTop_toBottomOf="@+id/password_edit_text" />
 
         <Button
             android:id="@+id/manager"
@@ -74,31 +106,6 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="@id/super_manager" />
 
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/name_edit_text"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="50dp"
-            android:hint="Name"
-            android:inputType="text"
-            android:textColor="@color/grayCircleColor"
-            android:textColorHint="@color/grayCircleColor"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/super_manager" />
-
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/password_edit_text"
-            android:layout_width="100dp"
-            android:layout_height="50dp"
-            android:hint="Password"
-            android:inputType="text"
-            android:textColor="@color/grayCircleColor"
-            android:textColorHint="@color/grayCircleColor"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/name_edit_text" />
-
         <Button
             android:id="@+id/ok_button"
             android:layout_width="100dp"
@@ -108,7 +115,8 @@
             android:text="ok"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/password_edit_text" />
+            app:layout_constraintTop_toBottomOf="@id/super_manager" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

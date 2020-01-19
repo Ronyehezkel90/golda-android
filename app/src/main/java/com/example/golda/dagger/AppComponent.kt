@@ -1,6 +1,6 @@
 package com.example.golda.dagger
 
-import com.example.golda.MainComponent
+import com.example.golda.sign.SignComponent
 import com.example.golda.administration.AdministrationComponent
 import com.example.golda.editor.managment.EditorComponent
 import com.example.golda.editor.modifier.ModifierComponent
@@ -17,7 +17,7 @@ interface AppComponent {
 
     fun getManagerComponent(): AdministrationComponent
 
-    fun getMainComponent(): MainComponent
+    fun getMainComponent(): SignComponent
 
     fun getEditorComponent(): EditorComponent
 

@@ -1,16 +1,20 @@
 package com.example.golda.reviews
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.api.load
-import coil.request.RequestDisposable
 import com.example.golda.R
 import com.example.golda.model.ReviewItem
 import kotlinx.android.synthetic.main.activity_reviews.*
+import android.webkit.WebView
+import android.R.attr.bitmap
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+
 
 class ReviewFragment(
     val idx: Int,
@@ -25,22 +29,31 @@ class ReviewFragment(
     ): View = inflater.inflate(R.layout.activity_reviews, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         reviews_recycler_view.layoutManager = LinearLayoutManager(activity)
         reviews_recycler_view.adapter = ReviewsAdapter(
             (activity as ReviewsActivity).isManager,
             { reviewPosition -> takePhoto(reviewPosition) },
             { reviewId, rank -> (activity as ReviewsActivity).updateReviewRank(reviewId, rank) },
             { reviewPosition -> addComment(reviewPosition) },
-            { imageUrl -> openImageGallery(imageUrl) }
+            { imageUrl -> openImageGallery(imageUrl) },
+            { imageKey -> downloadImageByKey(imageKey) }
+
         )
         (reviews_recycler_view.adapter as ReviewsAdapter).updateItems(this.topicReviews)
         section_title.text = topicName
-        super.onViewCreated(view, savedInstanceState)
+        gallery_view_frame_layout.setOnClickListener {
+            gallery_view_frame_layout.visibility = View.GONE
+        }
     }
 
-    private fun openImageGallery(imageUrl: String) {
+    private fun downloadImageByKey(reviewItemWithImage: ReviewItem) {
+        (activity as ReviewsActivity).downloadImageByKey(reviewItemWithImage, this)
+    }
+
+    private fun openImageGallery(bitmap: Bitmap) {
         gallery_view_frame_layout.visibility = View.VISIBLE
-        val requestDisposable: RequestDisposable = gallery_view_image_view.load(imageUrl)
+        gallery_view_image_view.setImageBitmap(bitmap)
     }
 
     private fun addComment(reviewPosition: Int) {
@@ -48,9 +61,7 @@ class ReviewFragment(
         (activity as ReviewsActivity).addComment(this, reviewPosition, topicId)
     }
 
-    private fun takePhoto(reviewPosition: Int) {
-        (activity as ReviewsActivity).launchCameraWithPermissionCheck(this, reviewPosition)
+    private fun takePhoto(reviewItem: ReviewItem) {
+        (activity as ReviewsActivity).launchCameraWithPermissionCheck(reviewItem)
     }
-
-
 }

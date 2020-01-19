@@ -1,6 +1,7 @@
 package com.example.golda.model
 
 import android.graphics.Bitmap
+import com.jakewharton.rxrelay2.BehaviorRelay
 import org.bson.types.ObjectId
 
 data class ReviewItem(

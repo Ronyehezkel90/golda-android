@@ -13,6 +13,8 @@ import com.example.golda.model.BranchItem
 import com.example.golda.reviews.ReviewsActivity
 import com.hannesdorfmann.mosby.mvp.MvpActivity
 import kotlinx.android.synthetic.main.activity_manager.*
+import kotlinx.android.synthetic.main.activity_manager.loader_spinner
+import kotlinx.android.synthetic.main.fragment_topics.*
 import org.bson.types.ObjectId
 
 class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPresenter>(),
@@ -105,16 +107,12 @@ class AdministrationActivity : MvpActivity<AdministrationView, AdministrationPre
     fun setReviewClicked(view: View) {
         val intent = Intent(this, ReviewsActivity::class.java)
         intent.putExtra(BRANCH_ID_EXTRA, getChosenBranchId())
-        intent.putExtra(ADMINISTRATION_ROLE_EXTRA, role)
-        startActivity(intent)
-    }
-
-    fun watchReviewClick(view: View) {
-        val intent = Intent(this, ReviewsActivity::class.java)
-        intent.putExtra(BRANCH_ID_EXTRA, getChosenBranchId())
         intent.putExtra(CHOSEN_DATE_EXTRA, date_spinner.selectedItem as String)
         intent.putExtra(ADMINISTRATION_ROLE_EXTRA, role)
         startActivity(intent)
     }
 
+    override fun setLoaderVisibility(showLoader: Boolean) {
+        loader_spinner.visibility = if (showLoader) View.VISIBLE else View.GONE
+    }
 }
