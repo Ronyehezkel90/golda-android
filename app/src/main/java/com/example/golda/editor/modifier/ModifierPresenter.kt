@@ -111,4 +111,8 @@ class ModifierPresenter @Inject constructor(
         return mongoManager.addBranch(ObjectId.get(), name, address, phone, managerObjectId)
     }
 
+    fun removeBranch(branchId: ObjectId): Task<RemoteDeleteResult>? {
+        return mongoManager.removeBranch(branchId)
+    }
+
 }

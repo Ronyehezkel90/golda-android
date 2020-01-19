@@ -49,10 +49,10 @@ class BranchEditFragment : Fragment() {
     }
 
     private fun removeButtonClick() {
-        val topicItem = branchModifyAdapter.chosenItem as TopicItem
-        (activity as ModifierActivity).presenter.removeTopic(topicItem._id)
+        val branchItem = branchModifyAdapter.chosenItem as BranchItem
+        (activity as ModifierActivity).presenter.removeBranch(branchItem._id)
             ?.addOnSuccessListener {
-                (activity as ModifierActivity).presenter.getTopics()
+                (activity as ModifierActivity).presenter.getBranches()
             }
 
     }

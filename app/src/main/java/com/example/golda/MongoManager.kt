@@ -221,4 +221,9 @@ class MongoManager @Inject constructor(
         return branchItemsCollection.insertOne(document)
     }
 
+    fun removeBranch(branchId: ObjectId): Task<RemoteDeleteResult>? {
+        val branchItemsCollection = mongoDb.getCollection("branches")
+        return branchItemsCollection.deleteOne(BsonDocument("_id", BsonObjectId(branchId)))
+    }
+
 }

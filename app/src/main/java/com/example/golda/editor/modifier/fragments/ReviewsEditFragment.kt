@@ -103,12 +103,14 @@ class ReviewsEditFragment : Fragment() {
 
     fun updateReviewsAdapterByTopic() {
         val reviewsListToShow = mutableListOf<Any>()
-        for (review in reviewsList) {
-            if (review.topic == topicsList[spinner_roles.selectedItemPosition]._id) {
-                reviewsListToShow.add(review)
+        if (!topicsList.isNullOrEmpty()) {
+            for (review in reviewsList) {
+                if (review.topic == topicsList[spinner_roles.selectedItemPosition]._id) {
+                    reviewsListToShow.add(review)
+                }
             }
+            reviewsModifyAdapter.updateReviews(reviewsListToShow)
         }
-        reviewsModifyAdapter.updateReviews(reviewsListToShow)
     }
 
     fun updateReviews(reviewsList: MutableList<ReviewItem>) {
